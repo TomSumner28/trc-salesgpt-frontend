@@ -1,1 +1,1 @@
-// Final React logic for branded UI, Outlook login, dashboard views
+// Final frontend React UI for SalesGPT with Outlook login and dashboard view
