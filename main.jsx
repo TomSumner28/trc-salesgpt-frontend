@@ -1,1 +1,1 @@
-// Final frontend React UI for SalesGPT with Outlook login and dashboard view
+// React UI placeholder with Outlook login and dashboard layout
