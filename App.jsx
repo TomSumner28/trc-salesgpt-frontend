@@ -1,1 +1,0 @@
-export default function App() { return <div style={{ color: 'white' }}>TRC SalesGPT Dashboard</div>; }
