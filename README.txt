@@ -1,1 +1,0 @@
-This is the final frontend build for TRC SalesGPT.
