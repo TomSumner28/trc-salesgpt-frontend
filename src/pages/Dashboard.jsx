@@ -4,7 +4,11 @@ export default function Dashboard() {
   const [isConnected, setIsConnected] = useState(false);
 
   const handleConnectOutlook = async () => {
-    setIsConnected(true);
+    try {
+      window.location.href = "https://trc-salesgpt-backend.onrender.com/auth/microsoft";
+    } catch (err) {
+      console.error("Error initiating Microsoft OAuth:", err);
+    }
   };
 
   return (
