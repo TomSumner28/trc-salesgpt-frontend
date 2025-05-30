@@ -1,9 +1,10 @@
-import React from 'react';
+import React from "react";
+
 export default function Team() {
   return (
     <div>
-      <h1>Team Role Views</h1>
-      <p>Sales and Account Manager logic to be added.</p>
+      <h3>Team View (Coming Soon)</h3>
+      <p>Account manager and sales teams with role-specific GPT handling.</p>
     </div>
   );
 }

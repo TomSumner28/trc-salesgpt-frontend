@@ -1,21 +1,26 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState } from "react";
 
 export default function QuickResponse() {
-  const [query, setQuery] = useState('');
-  const [reply, setReply] = useState('');
+  const [query, setQuery] = useState("");
+  const [response, setResponse] = useState("");
 
-  const generateReply = async () => {
-    const res = await axios.post(import.meta.env.VITE_API_BASE_URL + '/api/salesgpt', { query });
-    setReply(res.data.reply || 'No response');
+  const handleSubmit = async () => {
+    const res = await fetch(import.meta.env.VITE_API_BASE_URL + "/api/salesgpt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query })
+    });
+    const data = await res.json();
+    setResponse(data.reply);
   };
 
   return (
     <div>
-      <h1>Quick GPT Response</h1>
-      <textarea value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Paste email text..." rows={6} style={{ width: '100%' }} />
-      <button onClick={generateReply} style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}>Generate Reply</button>
-      <pre style={{ background: '#1e293b', padding: '1rem', marginTop: '1rem' }}>{reply}</pre>
+      <h3>Quick Response</h3>
+      <textarea value={query} onChange={(e) => setQuery(e.target.value)} rows={4} style={{ width: "100%", marginBottom: "1rem" }} />
+      <br />
+      <button onClick={handleSubmit}>Generate Reply</button>
+      {response && <pre style={{ marginTop: "1rem", whiteSpace: "pre-wrap" }}>{response}</pre>}
     </div>
   );
 }
