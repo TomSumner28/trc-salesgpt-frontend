@@ -1,1 +1,0 @@
-import React from 'react'; const Dashboard = () => <div className='text-white p-8'>Email Dashboard Placeholder</div>; export default Dashboard;
