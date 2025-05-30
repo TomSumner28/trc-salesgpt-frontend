@@ -1,11 +1,14 @@
 import React from 'react';
 import Dashboard from './components/Dashboard';
-import './styles/index.css';
+import Sidebar from './components/Sidebar';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <Dashboard />
+    <div className="flex">
+      <Sidebar />
+      <div className="flex-1 p-6">
+        <Dashboard />
+      </div>
     </div>
   );
 }
