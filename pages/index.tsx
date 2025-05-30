@@ -1,0 +1,1 @@
+// Page with Link Microsoft and status display
