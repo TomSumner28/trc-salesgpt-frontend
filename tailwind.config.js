@@ -4,6 +4,11 @@ module.exports = {
     extend: {
       colors: {
         trcblue: '#0f4c81',
+        darkbg: '#0d1117',
+        panel: '#161b22',
+      },
+      fontFamily: {
+        sans: ['Segoe UI', 'sans-serif'],
       },
     },
   },

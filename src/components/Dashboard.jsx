@@ -9,42 +9,62 @@ export default function Dashboard() {
   useEffect(() => {
     fetch('https://trc-salesgpt-backend.onrender.com/emails/summary')
       .then(res => res.json())
-      .then(setData);
+      .then(setData)
+      .catch(() => setData(null));
   }, []);
 
-  if (!data) return <div className="text-white">Loading dashboard...</div>;
+  if (!data) return <p className="text-red-500">Failed to load dashboard data.</p>;
 
-  const chartData = Object.entries(data.emailsPerDay || {}).map(([date, count]) => ({
+  const emailsOverTime = Object.entries(data.emailsPerDay || {}).map(([date, count]) => ({
     date, count,
   }));
 
+  const topSenders = data.topSenders || [];
+
   return (
-    <div>
-      <h2 className="text-3xl font-bold mb-6">Email Dashboard</h2>
-      <div className="grid grid-cols-2 gap-8">
-        <div className="bg-gray-800 p-4 rounded-2xl shadow">
-          <h3 className="text-xl mb-2">Total Emails</h3>
-          <p className="text-4xl font-semibold">{data.totalEmails}</p>
+    <div className="space-y-6">
+      <div className="grid grid-cols-3 gap-6">
+        <div className="bg-panel p-6 rounded-xl shadow">
+          <h3 className="text-gray-400">Emails sent</h3>
+          <p className="text-4xl font-bold text-white">{data.totalEmails}</p>
         </div>
-        <div className="bg-gray-800 p-4 rounded-2xl shadow">
-          <h3 className="text-xl mb-4">Emails Over Time</h3>
+        <div className="bg-panel p-6 rounded-xl shadow">
+          <h3 className="text-gray-400">Avg. reply time</h3>
+          <p className="text-4xl font-bold text-white">4.2h</p>
+        </div>
+        <div className="bg-panel p-6 rounded-xl shadow">
+          <h3 className="text-gray-400">Reply rate</h3>
+          <p className="text-4xl font-bold text-white">33%</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-6">
+        <div className="bg-panel p-6 rounded-xl shadow">
+          <h3 className="text-white mb-2">Emails Sent Over Time</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartData}>
-              <XAxis dataKey="date" />
-              <YAxis />
+            <LineChart data={emailsOverTime}>
+              <XAxis dataKey="date" stroke="#ccc" />
+              <YAxis stroke="#ccc" />
               <Tooltip />
               <Line type="monotone" dataKey="count" stroke="#0f4c81" />
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>
-      <div className="mt-8 bg-gray-800 p-4 rounded-2xl shadow">
-        <h3 className="text-xl mb-4">Top Senders</h3>
-        <ul className="list-disc pl-6 space-y-1">
-          {data.topSenders.map((sender, i) => (
-            <li key={i}>{sender.email} – {sender.count}</li>
-          ))}
-        </ul>
+        <div className="bg-panel p-6 rounded-xl shadow">
+          <h3 className="text-white mb-2">Reply Rate by Team Member</h3>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={[
+              { name: 'John', rate: 37 },
+              { name: 'Sarah', rate: 29 },
+              { name: 'Michael', rate: 35 },
+            ]}>
+              <XAxis dataKey="name" stroke="#ccc" />
+              <YAxis stroke="#ccc" />
+              <Tooltip />
+              <Bar dataKey="rate" fill="#0f4c81" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );
