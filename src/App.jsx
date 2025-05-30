@@ -1,22 +1,15 @@
-import React from 'react';
-import Sidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
 
-function App() {
+import React from 'react';
+import Dashboard from './components/Dashboard';
+import Sidebar from './components/Sidebar';
+
+export default function App() {
   return (
-    <div className="flex h-screen bg-darkbg font-sans">
+    <div className="flex h-screen bg-gray-900 text-white">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <header className="flex justify-between items-center p-4 border-b border-gray-800 bg-panel">
-          <h1 className="text-white text-2xl font-semibold">Dashboard</h1>
-          <button className="bg-trcblue text-white px-4 py-2 rounded hover:opacity-80 transition">Link Microsoft</button>
-        </header>
-        <main className="flex-1 p-6 overflow-auto">
-          <Dashboard />
-        </main>
-      </div>
+      <main className="flex-1 p-6 overflow-y-auto">
+        <Dashboard />
+      </main>
     </div>
   );
 }
-
-export default App;
