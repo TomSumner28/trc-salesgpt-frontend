@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export default function Dashboard() {
-  const [summary, setSummary] = useState(null);
+  const [summary, setSummary] = useState<any>(null);
 
   useEffect(() => {
     axios.get('https://trc-salesgpt-backend.onrender.com/emails/summary')
       .then(res => setSummary(res.data))
-      .catch(err => console.error(err));
+      .catch(err => console.error('Dashboard fetch error:', err));
   }, []);
 
   if (!summary) return <div className="text-white p-4">Loading dashboard...</div>;
@@ -19,16 +19,16 @@ export default function Dashboard() {
       <div className="mb-4">
         <h2 className="text-xl font-semibold">Top Senders</h2>
         <ul className="list-disc list-inside">
-          {summary.topSenders.map((s, i) => (
-            <li key={i}>{s.sender} — {s.count}</li>
+          {summary.topSenders.map((s: any, i: number) => (
+            <li key={i}>{s.email} — {s.count}</li>
           ))}
         </ul>
       </div>
       <div>
         <h2 className="text-xl font-semibold">Email Volume Per Day</h2>
         <ul className="list-disc list-inside">
-          {summary.emailsPerDay.map((d, i) => (
-            <li key={i}>{d.date}: {d.count}</li>
+          {Object.entries(summary.emailsPerDay).map(([date, count]: any, i) => (
+            <li key={i}>{date}: {count}</li>
           ))}
         </ul>
       </div>
