@@ -1,6 +1,10 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import Dashboard from './pages/Dashboard';
-import './index.css';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./pages/App";
+import "./styles/tailwind.css";
 
-ReactDOM.createRoot(document.getElementById('root')).render(<Dashboard />);
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
