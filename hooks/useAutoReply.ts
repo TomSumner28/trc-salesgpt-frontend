@@ -1,1 +1,0 @@
-// React hook to manage real-time drafting status
