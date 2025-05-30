@@ -1,22 +1,30 @@
 import React from 'react';
-import { useState } from 'react';
-import axios from 'axios';
+import { Routes, Route, Link } from 'react-router-dom';
+import Dashboard from './components/Dashboard';
+import Team from './components/Team';
+import KnowledgeBase from './components/KnowledgeBase';
+import QuickResponse from './components/QuickResponse';
 
 export default function App() {
-  const [response, setResponse] = useState('');
-  const [input, setInput] = useState('');
-
-  const generateReply = async () => {
-    const res = await axios.post(import.meta.env.VITE_API_BASE_URL + '/api/salesgpt', { query: input });
-    setResponse(res.data.reply || 'No response');
-  };
-
   return (
-    <div style={{ background: '#0f172a', color: '#60a5fa', minHeight: '100vh', padding: '2rem' }}>
-      <h1>TRC SalesGPT</h1>
-      <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Paste email or question..." style={{ width: '100%', padding: '1rem', fontSize: '1rem' }} />
-      <button onClick={generateReply} style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}>Generate Reply</button>
-      <pre style={{ marginTop: '2rem' }}>{response}</pre>
+    <div style={{ display: 'flex', height: '100vh', background: '#0f172a', color: 'white' }}>
+      <nav style={{ width: '200px', padding: '1rem', background: '#1e293b' }}>
+        <h2 style={{ color: '#3b82f6' }}>TRC SalesGPT</h2>
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          <li><Link to="/" style={{ color: 'white' }}>Dashboard</Link></li>
+          <li><Link to="/team" style={{ color: 'white' }}>Team</Link></li>
+          <li><Link to="/knowledge-base" style={{ color: 'white' }}>Knowledge Base</Link></li>
+          <li><Link to="/quick-response" style={{ color: 'white' }}>Quick Response</Link></li>
+        </ul>
+      </nav>
+      <main style={{ flex: 1, padding: '2rem' }}>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/knowledge-base" element={<KnowledgeBase />} />
+          <Route path="/quick-response" element={<QuickResponse />} />
+        </Routes>
+      </main>
     </div>
   );
 }
