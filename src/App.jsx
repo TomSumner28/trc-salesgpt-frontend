@@ -1,9 +1,9 @@
-import React from 'react';
-import { MicrosoftLoginButton } from './MicrosoftLoginButton';
+import React from "react";
+import MicrosoftLoginButton from "./MicrosoftLoginButton";
 
-export default function App() {
+function App() {
   return (
-    <div className="h-screen bg-gray-900 text-white flex items-center justify-center">
+    <div className="flex h-screen items-center justify-center bg-gray-950 text-white">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-6">TRC SalesGPT</h1>
         <MicrosoftLoginButton />
@@ -11,3 +11,5 @@ export default function App() {
     </div>
   );
 }
+
+export default App;
