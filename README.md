@@ -1,2 +1,3 @@
 # TRC SalesGPT Frontend
-This is the production-ready frontend with Microsoft login button.
+
+This is the frontend for TRC SalesGPT. To connect Microsoft, click the button on the homepage.

@@ -1,23 +1,21 @@
 
-import React from 'react';
+import Head from 'next/head';
 
 export default function Home() {
-  const handleMicrosoftConnect = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/start`);
-      const data = await response.json();
-      console.log(data.message);
-    } catch (error) {
-      console.error("Failed to initiate Microsoft auth:", error);
-    }
+  const handleConnect = async () => {
+    window.location.href = 'https://trc-salesgpt-backend.onrender.com/auth/start';
   };
 
   return (
-    <main style={{ padding: "4rem", fontFamily: "Arial, sans-serif" }}>
-      <h1>Welcome to TRC SalesGPT</h1>
-      <button onClick={handleMicrosoftConnect} style={{ marginTop: "2rem", padding: "1rem 2rem", fontSize: "1rem" }}>
-        Connect Microsoft
-      </button>
-    </main>
+    <div style={{ padding: '40px' }}>
+      <Head>
+        <title>TRC SalesGPT</title>
+        <meta name="description" content="Connect Microsoft Account" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <h1 style={{ fontSize: '2.5rem' }}>Welcome to TRC SalesGPT</h1>
+      <button onClick={handleConnect}>Connect Microsoft</button>
+    </div>
   );
 }
