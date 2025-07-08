@@ -1,10 +1,6 @@
-# TRC Forecasting GPT (Final Version)
+# TRC Forecasting GPT with Excel Export + UI Overhaul
 
 Includes:
-- 6-month forecast table with region-level breakdown per month
-- Total and average monthly cost
-- Regional spend pie chart
-- Tier conversion rates
-- In-store uplift based on store count
-- MoM performance logic
-- Ready for Vercel deployment
+- Export to Excel of full 6-month forecast (by region/month)
+- Refreshed UI in The Reward Collection dark branding
+- Tier logic, store uplift, MoM forecasting, ROAS & AOV
