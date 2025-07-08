@@ -1,5 +1,5 @@
 {
-  "name": "trc-forecasting-gpt-trc-ui-tactical",
+  "name": "trc-forecast-gpt-tactical-final",
   "version": "2.1.0",
   "scripts": {
     "dev": "next dev",

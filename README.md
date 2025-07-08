@@ -1,8 +1,8 @@
-# TRC Forecasting GPT – Tactical Offer & 6-Tier Logic
+# TRC Forecasting GPT Tactical – Final Version
 
-Includes:
-- Tactical offer toggle with dual cashback support
-- 6-tier retailer conversion rate logic (hidden)
-- Adjusted MoM split: 60% existing / 40% new
-- Forecast volume reduction for new-only offers
-- Excel export and TRC branding
+Features:
+- Tactical Offer toggle (new & existing split)
+- 6-tier conversion logic
+- MoM & regional breakdown with segment
+- Excel export (client-side & API)
+- TRC-branded modern UI
