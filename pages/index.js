@@ -1,10 +1,10 @@
-
-import Head from 'next/head'
-import { useState } from 'react'
+import Head from 'next/head';
+import { useState } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, Legend, PieChart, Pie, Cell
-} from 'recharts'
+} from 'recharts';
+import * as XLSX from 'xlsx';
 
 export default function Home() {
   const [retailer, setRetailer] = useState('');
@@ -22,7 +22,7 @@ export default function Home() {
   const momMultipliers = [1.00, 1.03, 1.05, 1.04, 1.09, 1.11];
   const tierConversionRates = { '1': 0.001, '2': 0.0005, '3': 0.00025 };
   const estimatedInStoreConversionBoostPerStore = 0.00001;
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7f50'];
+  const COLORS = ['#00BFFF', '#007ACC', '#005B99', '#003F73'];
 
   const formatCurrency = (value, useUSD = false) =>
     new Intl.NumberFormat('en-US', {
@@ -122,29 +122,46 @@ export default function Home() {
     });
   };
 
-  return (
-    <div style={{ backgroundColor: '#0a0a0a', color: '#fff', minHeight: '100vh', padding: '2rem' }}>
-      <Head><title>Forecasting GPT</title></Head>
-      <main>
-        <h1 style={{ color: '#00BFFF' }}>Forecasting GPT</h1>
+  const exportToExcel = () => {
+    const exportData = results.monthlyData.flatMap(month =>
+      month.details.map(detail => ({
+        Month: month.name,
+        Region: detail.region,
+        Sales: detail.sales,
+        Revenue: detail.revenue,
+        Cost: detail.cost,
+        ROAS: detail.roas
+      }))
+    );
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Forecast');
+    XLSX.writeFile(workbook, 'TRC_Forecast.xlsx');
+  };
 
-        <input placeholder="Retailer Name" value={retailer} onChange={e => setRetailer(e.target.value)} />
-        <h2>Select Regions</h2>
+  return (
+    <div style={{ backgroundColor: '#0a0a0a', color: '#fff', minHeight: '100vh', padding: '2rem', fontFamily: 'Arial' }}>
+      <Head><title>TRC Forecasting GPT</title></Head>
+      <main>
+        <h1 style={{ color: '#00BFFF', fontSize: '2rem' }}>TRC Forecasting GPT</h1>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+          <input placeholder="Retailer Name" value={retailer} onChange={e => setRetailer(e.target.value)} style={{ padding: '0.5rem' }} />
+          <select value={tier} onChange={e => setTier(e.target.value)} style={{ padding: '0.5rem' }}>
+            <option value="1">Tier 1 (0.1%)</option>
+            <option value="2">Tier 2 (0.05%)</option>
+            <option value="3">Tier 3 (0.025%)</option>
+          </select>
+        </div>
+
+        <h2 style={{ marginTop: '1rem', color: '#00BFFF' }}>Regions</h2>
         {allRegions.map(region => (
           <label key={region} style={{ marginRight: '1rem' }}>
             <input type="checkbox" checked={regions.includes(region)} onChange={() => handleRegionSelect(region)} /> {region}
           </label>
         ))}
 
-        <h2>Variables</h2>
-        <label>Retailer Tier:</label>
-        <select value={tier} onChange={e => setTier(e.target.value)}>
-          <option value="1">Tier 1 (0.1%)</option>
-          <option value="2">Tier 2 (0.05%)</option>
-          <option value="3">Tier 3 (0.025%)</option>
-        </select>
-
-        <h3>Offer Type</h3>
+        <h2 style={{ marginTop: '1rem', color: '#00BFFF' }}>Offer Types</h2>
         {allOfferTypes.map(type => (
           <label key={type} style={{ marginRight: '1rem' }}>
             <input type="checkbox" checked={offerTypes.includes(type)} onChange={() => handleOfferTypeToggle(type)} /> {type}
@@ -153,65 +170,73 @@ export default function Home() {
 
         {offerTypes.includes('In-Store') && (
           <>
-            <label>Number of Stores: </label>
-            <input type="number" value={storeCount} onChange={e => setStoreCount(Number(e.target.value))} />
+            <label style={{ display: 'block', marginTop: '1rem' }}>Number of Stores: </label>
+            <input type="number" value={storeCount} onChange={e => setStoreCount(Number(e.target.value))} style={{ padding: '0.5rem' }} />
           </>
         )}
 
         {regions.map(region => (
           <div key={region}>
-            <label>{region} Reach: </label>
-            <input type="number" value={reachByRegion[region] || ''} onChange={e => handleReachChange(region, e.target.value)} />
+            <label>{region} Reach:</label>
+            <input type="number" value={reachByRegion[region] || ''} onChange={e => handleReachChange(region, e.target.value)} style={{ marginLeft: '1rem', padding: '0.5rem' }} />
           </div>
         ))}
 
-        <label>Average Order Value: </label>
-        <input type="number" value={aov} onChange={e => setAov(Number(e.target.value))} />
-        <label>Cashback (%): </label>
-        <input type="range" min="0" max="100" value={cashback} onChange={e => setCashback(Number(e.target.value))} />
-        <span>{cashback}%</span>
+        <label style={{ display: 'block', marginTop: '1rem' }}>Average Order Value:</label>
+        <input type="number" value={aov} onChange={e => setAov(Number(e.target.value))} style={{ padding: '0.5rem' }} />
 
-        <br /><br />
-        <button onClick={handleSubmit} style={{ padding: '0.5rem 1rem', backgroundColor: '#00BFFF', border: 'none', color: '#000' }}>
-          Generate Forecast
-        </button>
+        <label style={{ display: 'block', marginTop: '1rem' }}>Cashback (%): {cashback}%</label>
+        <input type="range" min="0" max="100" value={cashback} onChange={e => setCashback(Number(e.target.value))} />
+
+        <br />
+        <button onClick={handleSubmit} style={{ marginTop: '1rem', padding: '0.75rem 2rem', backgroundColor: '#00BFFF', border: 'none', borderRadius: '6px', fontWeight: 'bold' }}>Generate Forecast</button>
 
         {results && (
           <div style={{ marginTop: '2rem' }}>
-            <h2>6-Month Forecast Table with Regional Breakdown</h2>
-            <table style={{ width: '100%', textAlign: 'left', backgroundColor: '#111', color: '#fff', borderCollapse: 'collapse' }}>
+            <button onClick={exportToExcel} style={{ marginBottom: '1rem', padding: '0.5rem 1rem', backgroundColor: '#003F73', border: 'none', borderRadius: '6px', color: '#fff' }}>
+              Download to Excel
+            </button>
+
+            <h3>Campaign Totals</h3>
+            <p>Total Sales: {results.totalSales.toLocaleString()}</p>
+            <p>Total Revenue: {formatCurrency(results.totalRevenue, results.isUSD)}</p>
+            <p>Total Cost: {formatCurrency(results.totalCost, results.isUSD)}</p>
+            <p>Average Monthly Cost: {formatCurrency(results.avgMonthlyCost, results.isUSD)}</p>
+            <p>Total ROAS: {results.totalRoas.toFixed(2)}x</p>
+
+            <h3>Monthly Forecast by Region</h3>
+            <table style={{ width: '100%', backgroundColor: '#111', borderCollapse: 'collapse', marginTop: '1rem' }}>
               <thead>
-                <tr>
-                  <th>Month</th>
-                  <th>Region</th>
-                  <th>Sales</th>
-                  <th>Revenue</th>
-                  <th>Cost</th>
-                  <th>ROAS</th>
+                <tr style={{ borderBottom: '1px solid #333' }}>
+                  <th>Month</th><th>Region</th><th>Sales</th><th>Revenue</th><th>Cost</th><th>ROAS</th>
                 </tr>
               </thead>
               <tbody>
-                {results.monthlyData.map((data, index) => (
-                  data.details.map((regionRow, rIndex) => (
-                    <tr key={`${index}-${rIndex}`}>
-                      <td>{rIndex === 0 ? data.name : ''}</td>
-                      <td>{regionRow.region}</td>
-                      <td>{regionRow.sales.toLocaleString()}</td>
-                      <td>{formatCurrency(regionRow.revenue, results.isUSD)}</td>
-                      <td>{formatCurrency(regionRow.cost, results.isUSD)}</td>
-                      <td>{regionRow.roas.toFixed(2)}x</td>
+                {results.monthlyData.map((month, i) => (
+                  month.details.map((detail, j) => (
+                    <tr key={i + '-' + j}>
+                      <td>{j === 0 ? month.name : ''}</td>
+                      <td>{detail.region}</td>
+                      <td>{detail.sales.toLocaleString()}</td>
+                      <td>{formatCurrency(detail.revenue, results.isUSD)}</td>
+                      <td>{formatCurrency(detail.cost, results.isUSD)}</td>
+                      <td>{detail.roas.toFixed(2)}x</td>
                     </tr>
                   ))
                 ))}
               </tbody>
             </table>
 
-            <h3 style={{ marginTop: '1rem' }}>Campaign Totals</h3>
-            <p>Total Sales: {results.totalSales.toLocaleString()}</p>
-            <p>Total Revenue: {formatCurrency(results.totalRevenue, results.isUSD)}</p>
-            <p>Total Cost: {formatCurrency(results.totalCost, results.isUSD)}</p>
-            <p>Average Monthly Cost: {formatCurrency(results.avgMonthlyCost, results.isUSD)}</p>
-            <p>Total ROAS: {results.totalRoas.toFixed(2)}x</p>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={results.monthlyData}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="revenue" stroke="#00BFFF" name="Revenue" />
+                <Line type="monotone" dataKey="cost" stroke="#FF8C00" name="Cost" />
+              </LineChart>
+            </ResponsiveContainer>
 
             <h3>Regional Spend Breakdown</h3>
             <ResponsiveContainer width="100%" height={300}>

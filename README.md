@@ -1,5 +1,7 @@
-# TRC Forecasting GPT (Final with Excel Export)
+# TRC Forecasting GPT – Final Interactive UI
 
-- Export to Excel (.xlsx) from `/api/export`
-- Refreshed UI in dark TRC branding
-- MoM logic, ROAS, AOV, store uplift, regional split
+Features:
+- Fully redesigned UI in The Reward Collection branding
+- Responsive, modern layout with deep blue/dark theme
+- Clearly visible "Download to Excel" button
+- Excel export of full forecast including region breakdown
