@@ -1,5 +1,6 @@
 import Head from 'next/head'
 import { useState } from 'react'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Legend } from 'recharts'
 
 export default function Home() {
   const [retailer, setRetailer] = useState('');
@@ -11,6 +12,14 @@ export default function Home() {
   const [results, setResults] = useState(null);
 
   const allRegions = ['UK', 'US', 'EU', 'APAC'];
+
+  const formatCurrency = (value, useUSD = false) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: useUSD ? 'USD' : 'GBP',
+      minimumFractionDigits: 2
+    }).format(value);
+  };
 
   const handleReachChange = (region, value) => {
     setReachByRegion(prev => ({ ...prev, [region]: Number(value) }));
@@ -25,6 +34,7 @@ export default function Home() {
   const handleSubmit = () => {
     let monthlyData = [];
     let totalSales = 0, totalRevenue = 0, totalCost = 0;
+    const isUSD = regions.length === 1 && regions[0] === 'US';
 
     regions.forEach(region => {
       const reach = reachByRegion[region] || 0;
@@ -35,11 +45,11 @@ export default function Home() {
 
       for (let i = 0; i < 6; i++) {
         monthlyData.push({
-          month: `Month ${i + 1}`,
+          name: `Month ${i + 1}`,
           region,
-          sales,
-          revenue,
-          cost,
+          sales: Math.round(sales),
+          revenue: revenue,
+          cost: cost,
           roas: cost ? revenue / cost : 0
         });
       }
@@ -54,7 +64,8 @@ export default function Home() {
       totalSales,
       totalRevenue,
       totalCost,
-      totalRoas: totalCost ? totalRevenue / totalCost : 0
+      totalRoas: totalCost ? totalRevenue / totalCost : 0,
+      isUSD
     });
   };
 
@@ -68,7 +79,7 @@ export default function Home() {
 
         <input placeholder="Retailer Name" value={retailer} onChange={e => setRetailer(e.target.value)} style={{ margin: '0.5rem', padding: '0.5rem' }} />
 
-        <h2 style={{ marginTop: '1rem' }}>Select Regions</h2>
+        <h2>Select Regions</h2>
         {allRegions.map(region => (
           <label key={region} style={{ marginRight: '1rem' }}>
             <input type="checkbox" checked={regions.includes(region)} onChange={() => handleRegionSelect(region)} />
@@ -76,7 +87,7 @@ export default function Home() {
           </label>
         ))}
 
-        <h2 style={{ marginTop: '1rem' }}>Variables</h2>
+        <h2>Variables</h2>
         {regions.map(region => (
           <div key={region}>
             <label>{region} Reach: </label>
@@ -87,7 +98,7 @@ export default function Home() {
         <label>Conversion Rate (%): </label>
         <input type="number" value={conversionRate} onChange={e => setConversionRate(Number(e.target.value))} style={{ margin: '0.5rem' }} />
         <br />
-        <label>Average Order Value (£): </label>
+        <label>Average Order Value: </label>
         <input type="number" value={aov} onChange={e => setAov(Number(e.target.value))} style={{ margin: '0.5rem' }} />
         <br />
         <label>Cashback (%): </label>
@@ -101,18 +112,58 @@ export default function Home() {
 
         {results && (
           <div style={{ marginTop: '2rem' }}>
-            <h2>6-Month Forecast</h2>
-            {results.monthlyData.map((data, index) => (
-              <div key={index}>
-                <strong>{data.month} ({data.region}):</strong><br />
-                Sales: {data.sales.toFixed(0)} | Revenue: £{data.revenue.toFixed(2)} | Cost: £{data.cost.toFixed(2)} | ROAS: {data.roas.toFixed(2)}x
-              </div>
-            ))}
-            <h3 style={{ marginTop: '1rem' }}>Total 6-Month Campaign</h3>
-            <p>Sales: {results.totalSales.toFixed(0)}</p>
-            <p>Revenue: £{results.totalRevenue.toFixed(2)}</p>
-            <p>Cost: £{results.totalCost.toFixed(2)}</p>
-            <p>ROAS: {results.totalRoas.toFixed(2)}x</p>
+            <h2>6-Month Forecast Table</h2>
+            <table style={{ width: '100%', textAlign: 'left', backgroundColor: '#111', color: '#fff', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Sales</th>
+                  <th>Revenue</th>
+                  <th>Cost</th>
+                  <th>ROAS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.monthlyData.map((data, index) => (
+                  <tr key={index}>
+                    <td>{data.name}</td>
+                    <td>{data.sales.toLocaleString()}</td>
+                    <td>{formatCurrency(data.revenue, results.isUSD)}</td>
+                    <td>{formatCurrency(data.cost, results.isUSD)}</td>
+                    <td>{data.roas.toFixed(2)}x</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <h3 style={{ marginTop: '1rem' }}>Campaign Totals</h3>
+            <p>Total Sales: {results.totalSales.toLocaleString()}</p>
+            <p>Total Revenue: {formatCurrency(results.totalRevenue, results.isUSD)}</p>
+            <p>Total Cost: {formatCurrency(results.totalCost, results.isUSD)}</p>
+            <p>Total ROAS: {results.totalRoas.toFixed(2)}x</p>
+
+            <h3 style={{ marginTop: '2rem' }}>Graphs</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={results.monthlyData}>
+                <XAxis dataKey="name" stroke="#ccc" />
+                <YAxis stroke="#ccc" />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="revenue" fill="#00BFFF" name="Revenue" />
+                <Bar dataKey="cost" fill="#FF6347" name="Cost" />
+              </BarChart>
+            </ResponsiveContainer>
+
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={results.monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" stroke="#ccc" />
+                <YAxis stroke="#ccc" />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="roas" stroke="#32CD32" name="ROAS" />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         )}
       </main>
