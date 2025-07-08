@@ -1,8 +1,8 @@
-# TRC Forecasting GPT Tactical – Final Version
+# TRC Forecast GPT – Clean UI with Regional Toggle
 
-Features:
-- Tactical Offer toggle (new & existing split)
-- 6-tier conversion logic
-- MoM & regional breakdown with segment
-- Excel export (client-side & API)
-- TRC-branded modern UI
+Features (in progress):
+- Grouped Month-by-Month layout
+- Toggle region-level rows
+- Clean spacing and design
+- TRC brand styled UI
+- Charts toggle
