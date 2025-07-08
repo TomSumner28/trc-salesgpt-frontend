@@ -1,1 +1,1 @@
-// Final tactical version of index.js goes here
+// Final React component logic with tactical forecasting goes here
