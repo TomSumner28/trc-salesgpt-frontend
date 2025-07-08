@@ -162,7 +162,33 @@ export default function Home() {
             <p>Average Monthly Cost: {formatCurrency(results.avgMonthlyCost, results.isUSD)}</p>
             <p>Total ROAS: {results.totalRoas.toFixed(2)}x</p>
 
-            <ResponsiveContainer width="100%" height={300}>
+            
+<h2>6-Month Forecast Table</h2>
+<table style={{ width: '100%', textAlign: 'left', backgroundColor: '#111', color: '#fff', borderCollapse: 'collapse' }}>
+  <thead>
+    <tr>
+      <th>Month</th>
+      <th>Sales</th>
+      <th>Revenue</th>
+      <th>Cost</th>
+      <th>ROAS</th>
+    </tr>
+  </thead>
+  <tbody>
+    {results.monthlyData.map((data, index) => (
+      <tr key={index}>
+        <td>{data.name}</td>
+        <td>{data.sales.toLocaleString()}</td>
+        <td>{formatCurrency(data.revenue, results.isUSD)}</td>
+        <td>{formatCurrency(data.cost, results.isUSD)}</td>
+        <td>{data.roas.toFixed(2)}x</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+
+<ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie data={results.pieData} dataKey="value" nameKey="region" cx="50%" cy="50%" outerRadius={100} fill="#00BFFF" label>
                   {results.pieData.map((entry, index) => (
