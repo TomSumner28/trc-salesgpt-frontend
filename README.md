@@ -1,8 +1,12 @@
-# TRC Forecasting GPT with Regional Breakdown
+# TRC Forecasting GPT – Full Vercel Deployment Package
 
-## Features
+Includes:
 - Retailer tier-based conversion rate
-- Online/In-store selection with uplift from store count
-- MoM revenue and ROAS projections
-- Total and average monthly cost
-- Regional spend breakdown visualized in pie chart
+- In-store uplift by store count
+- Offer type selector (Online / In-Store)
+- MoM multiplier for growth simulation
+- Total and average cost
+- ROAS and revenue performance
+- Regional breakdown of cost (pie chart)
+
+Ready to deploy to Vercel using Next.js
