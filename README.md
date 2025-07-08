@@ -1,9 +1,10 @@
-# TRC Forecasting GPT (with Forecast Grid + Pie Chart)
+# TRC Forecasting GPT (Final Version)
 
 Includes:
-- Month-by-month forecast table
-- Average monthly cost
+- 6-month forecast table with region-level breakdown per month
+- Total and average monthly cost
 - Regional spend pie chart
-- Tier-based conversion rates
-- In-store uplift logic
-- MoM forecasting and ROAS
+- Tier conversion rates
+- In-store uplift based on store count
+- MoM performance logic
+- Ready for Vercel deployment

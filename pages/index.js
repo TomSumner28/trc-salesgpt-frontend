@@ -1,6 +1,10 @@
+
 import Head from 'next/head'
 import { useState } from 'react'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, PieChart, Pie, Cell } from 'recharts'
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  CartesianGrid, Legend, PieChart, Pie, Cell
+} from 'recharts'
 
 export default function Home() {
   const [retailer, setRetailer] = useState('');
@@ -60,6 +64,8 @@ export default function Home() {
 
     for (let i = 0; i < 6; i++) {
       let monthSales = 0, monthRevenue = 0, monthCost = 0;
+      let details = [];
+
       regions.forEach(region => {
         const reach = reachByRegion[region] || 0;
         const baseSales = reach * conversionRate;
@@ -71,6 +77,15 @@ export default function Home() {
         const adjustedSales = baseSales * momMultipliers[i];
 
         regionCostMap[region] = (regionCostMap[region] || 0) + adjustedCost;
+
+        details.push({
+          region,
+          sales: Math.round(adjustedSales),
+          revenue: adjustedRevenue,
+          cost: adjustedCost,
+          roas: adjustedCost ? adjustedRevenue / adjustedCost : 0
+        });
+
         monthSales += adjustedSales;
         monthRevenue += adjustedRevenue;
         monthCost += adjustedCost;
@@ -81,7 +96,8 @@ export default function Home() {
         sales: Math.round(monthSales),
         revenue: monthRevenue,
         cost: monthCost,
-        roas: monthCost ? monthRevenue / monthCost : 0
+        roas: monthCost ? monthRevenue / monthCost : 0,
+        details
       });
 
       totalSales += monthSales;
@@ -111,44 +127,50 @@ export default function Home() {
       <Head><title>Forecasting GPT</title></Head>
       <main>
         <h1 style={{ color: '#00BFFF' }}>Forecasting GPT</h1>
-        <input placeholder="Retailer Name" value={retailer} onChange={e => setRetailer(e.target.value)} style={{ margin: '0.5rem', padding: '0.5rem' }} />
+
+        <input placeholder="Retailer Name" value={retailer} onChange={e => setRetailer(e.target.value)} />
         <h2>Select Regions</h2>
         {allRegions.map(region => (
           <label key={region} style={{ marginRight: '1rem' }}>
             <input type="checkbox" checked={regions.includes(region)} onChange={() => handleRegionSelect(region)} /> {region}
           </label>
         ))}
+
         <h2>Variables</h2>
         <label>Retailer Tier:</label>
-        <select value={tier} onChange={e => setTier(e.target.value)} style={{ margin: '0.5rem' }}>
+        <select value={tier} onChange={e => setTier(e.target.value)}>
           <option value="1">Tier 1 (0.1%)</option>
           <option value="2">Tier 2 (0.05%)</option>
           <option value="3">Tier 3 (0.025%)</option>
         </select>
+
         <h3>Offer Type</h3>
         {allOfferTypes.map(type => (
           <label key={type} style={{ marginRight: '1rem' }}>
             <input type="checkbox" checked={offerTypes.includes(type)} onChange={() => handleOfferTypeToggle(type)} /> {type}
           </label>
         ))}
+
         {offerTypes.includes('In-Store') && (
           <>
             <label>Number of Stores: </label>
-            <input type="number" value={storeCount} onChange={e => setStoreCount(Number(e.target.value))} style={{ margin: '0.5rem' }} />
+            <input type="number" value={storeCount} onChange={e => setStoreCount(Number(e.target.value))} />
           </>
         )}
+
         {regions.map(region => (
           <div key={region}>
             <label>{region} Reach: </label>
-            <input type="number" value={reachByRegion[region] || ''} onChange={e => handleReachChange(region, e.target.value)} style={{ margin: '0.5rem' }} />
+            <input type="number" value={reachByRegion[region] || ''} onChange={e => handleReachChange(region, e.target.value)} />
           </div>
         ))}
+
         <label>Average Order Value: </label>
-        <input type="number" value={aov} onChange={e => setAov(Number(e.target.value))} style={{ margin: '0.5rem' }} />
-        <br />
+        <input type="number" value={aov} onChange={e => setAov(Number(e.target.value))} />
         <label>Cashback (%): </label>
         <input type="range" min="0" max="100" value={cashback} onChange={e => setCashback(Number(e.target.value))} />
         <span>{cashback}%</span>
+
         <br /><br />
         <button onClick={handleSubmit} style={{ padding: '0.5rem 1rem', backgroundColor: '#00BFFF', border: 'none', color: '#000' }}>
           Generate Forecast
@@ -156,39 +178,43 @@ export default function Home() {
 
         {results && (
           <div style={{ marginTop: '2rem' }}>
-            <h2>6-Month Forecast Summary</h2>
+            <h2>6-Month Forecast Table with Regional Breakdown</h2>
+            <table style={{ width: '100%', textAlign: 'left', backgroundColor: '#111', color: '#fff', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Region</th>
+                  <th>Sales</th>
+                  <th>Revenue</th>
+                  <th>Cost</th>
+                  <th>ROAS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.monthlyData.map((data, index) => (
+                  data.details.map((regionRow, rIndex) => (
+                    <tr key={`${index}-${rIndex}`}>
+                      <td>{rIndex === 0 ? data.name : ''}</td>
+                      <td>{regionRow.region}</td>
+                      <td>{regionRow.sales.toLocaleString()}</td>
+                      <td>{formatCurrency(regionRow.revenue, results.isUSD)}</td>
+                      <td>{formatCurrency(regionRow.cost, results.isUSD)}</td>
+                      <td>{regionRow.roas.toFixed(2)}x</td>
+                    </tr>
+                  ))
+                ))}
+              </tbody>
+            </table>
+
+            <h3 style={{ marginTop: '1rem' }}>Campaign Totals</h3>
+            <p>Total Sales: {results.totalSales.toLocaleString()}</p>
             <p>Total Revenue: {formatCurrency(results.totalRevenue, results.isUSD)}</p>
             <p>Total Cost: {formatCurrency(results.totalCost, results.isUSD)}</p>
             <p>Average Monthly Cost: {formatCurrency(results.avgMonthlyCost, results.isUSD)}</p>
             <p>Total ROAS: {results.totalRoas.toFixed(2)}x</p>
 
-            
-<h2>6-Month Forecast Table</h2>
-<table style={{ width: '100%', textAlign: 'left', backgroundColor: '#111', color: '#fff', borderCollapse: 'collapse' }}>
-  <thead>
-    <tr>
-      <th>Month</th>
-      <th>Sales</th>
-      <th>Revenue</th>
-      <th>Cost</th>
-      <th>ROAS</th>
-    </tr>
-  </thead>
-  <tbody>
-    {results.monthlyData.map((data, index) => (
-      <tr key={index}>
-        <td>{data.name}</td>
-        <td>{data.sales.toLocaleString()}</td>
-        <td>{formatCurrency(data.revenue, results.isUSD)}</td>
-        <td>{formatCurrency(data.cost, results.isUSD)}</td>
-        <td>{data.roas.toFixed(2)}x</td>
-      </tr>
-    ))}
-  </tbody>
-</table>
-
-
-<ResponsiveContainer width="100%" height={300}>
+            <h3>Regional Spend Breakdown</h3>
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie data={results.pieData} dataKey="value" nameKey="region" cx="50%" cy="50%" outerRadius={100} fill="#00BFFF" label>
                   {results.pieData.map((entry, index) => (
