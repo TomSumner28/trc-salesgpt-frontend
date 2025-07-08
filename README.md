@@ -1,6 +1,5 @@
-# TRC Forecasting GPT with Excel Export + UI Overhaul
+# TRC Forecasting GPT (Final with Excel Export)
 
-Includes:
-- Export to Excel of full 6-month forecast (by region/month)
-- Refreshed UI in The Reward Collection dark branding
-- Tier logic, store uplift, MoM forecasting, ROAS & AOV
+- Export to Excel (.xlsx) from `/api/export`
+- Refreshed UI in dark TRC branding
+- MoM logic, ROAS, AOV, store uplift, regional split
