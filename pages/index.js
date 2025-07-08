@@ -5,14 +5,26 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 export default function Home() {
   const [retailer, setRetailer] = useState('');
   const [regions, setRegions] = useState([]);
+  const [tier, setTier] = useState('1');
   const [aov, setAov] = useState(0);
   const [cashback, setCashback] = useState(10);
-  const [conversionRate, setConversionRate] = useState(5);
+  const [offerTypes, setOfferTypes] = useState([]);
+  const [storeCount, setStoreCount] = useState(0);
   const [reachByRegion, setReachByRegion] = useState({});
   const [results, setResults] = useState(null);
 
   const allRegions = ['UK', 'US', 'EU', 'APAC'];
-  const momMultipliers = [1.00, 1.03, 1.05, 1.04, 1.09, 1.11]; // Cumulative growth factors based on given changes
+  const allOfferTypes = ['Online', 'In-Store'];
+
+  const momMultipliers = [1.00, 1.03, 1.05, 1.04, 1.09, 1.11];
+
+  const tierConversionRates = {
+    '1': 0.001,   // 0.1%
+    '2': 0.0005,  // 0.05%
+    '3': 0.00025  // 0.025%
+  };
+
+  const estimatedInStoreConversionBoostPerStore = 0.00001; // 0.001% per store
 
   const formatCurrency = (value, useUSD = false) => {
     return new Intl.NumberFormat('en-US', {
@@ -32,18 +44,32 @@ export default function Home() {
     );
   };
 
+  const handleOfferTypeToggle = (type) => {
+    setOfferTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
+
+  const calculateConversionRate = () => {
+    let baseRate = tierConversionRates[tier] || 0;
+    if (offerTypes.includes('In-Store') && storeCount > 0) {
+      baseRate += storeCount * estimatedInStoreConversionBoostPerStore;
+    }
+    return baseRate;
+  };
+
   const handleSubmit = () => {
     let monthlyData = [];
     let totalSales = 0, totalRevenue = 0, totalCost = 0;
     const isUSD = regions.length === 1 && regions[0] === 'US';
+    const conversionRate = calculateConversionRate();
 
     for (let i = 0; i < 6; i++) {
       let monthSales = 0, monthRevenue = 0, monthCost = 0;
 
       regions.forEach(region => {
         const reach = reachByRegion[region] || 0;
-        const convRate = conversionRate / 100;
-        const baseSales = reach * convRate;
+        const baseSales = reach * conversionRate;
         const baseRevenue = baseSales * aov;
         const baseCost = baseRevenue * (cashback / 100);
 
@@ -98,6 +124,28 @@ export default function Home() {
         ))}
 
         <h2>Variables</h2>
+        <label>Retailer Tier:</label>
+        <select value={tier} onChange={e => setTier(e.target.value)} style={{ margin: '0.5rem' }}>
+          <option value="1">Tier 1 (0.1%)</option>
+          <option value="2">Tier 2 (0.05%)</option>
+          <option value="3">Tier 3 (0.025%)</option>
+        </select>
+
+        <h3>Offer Type</h3>
+        {allOfferTypes.map(type => (
+          <label key={type} style={{ marginRight: '1rem' }}>
+            <input type="checkbox" checked={offerTypes.includes(type)} onChange={() => handleOfferTypeToggle(type)} />
+            {type}
+          </label>
+        ))}
+
+        {offerTypes.includes('In-Store') && (
+          <>
+            <label>Number of Stores: </label>
+            <input type="number" value={storeCount} onChange={e => setStoreCount(Number(e.target.value))} style={{ margin: '0.5rem' }} />
+          </>
+        )}
+
         {regions.map(region => (
           <div key={region}>
             <label>{region} Reach: </label>
@@ -105,9 +153,6 @@ export default function Home() {
           </div>
         ))}
 
-        <label>Conversion Rate (%): </label>
-        <input type="number" value={conversionRate} onChange={e => setConversionRate(Number(e.target.value))} style={{ margin: '0.5rem' }} />
-        <br />
         <label>Average Order Value: </label>
         <input type="number" value={aov} onChange={e => setAov(Number(e.target.value))} style={{ margin: '0.5rem' }} />
         <br />
@@ -152,7 +197,7 @@ export default function Home() {
             <p>Total Cost: {formatCurrency(results.totalCost, results.isUSD)}</p>
             <p>Total ROAS: {results.totalRoas.toFixed(2)}x</p>
 
-            <h3 style={{ marginTop: '2rem' }}>Revenue & Cost Over Time</h3>
+            <h3 style={{ marginTop: '2rem' }}>Performance Over Time</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={results.monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -162,17 +207,6 @@ export default function Home() {
                 <Legend />
                 <Line type="monotone" dataKey="revenue" stroke="#00BFFF" name="Revenue" />
                 <Line type="monotone" dataKey="cost" stroke="#FF6347" name="Cost" />
-              </LineChart>
-            </ResponsiveContainer>
-
-            <h3 style={{ marginTop: '2rem' }}>ROAS Over Time</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={results.monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" stroke="#ccc" />
-                <YAxis stroke="#ccc" />
-                <Tooltip />
-                <Legend />
                 <Line type="monotone" dataKey="roas" stroke="#32CD32" name="ROAS" />
               </LineChart>
             </ResponsiveContainer>
