@@ -1,89 +1,46 @@
 import Head from 'next/head';
 import { useState } from 'react';
 
-const sampleData = [
-  {
-    month: 'Month 1',
-    total: { revenue: 192000, cost: 19200, roas: 10 },
-    breakdown: {
-      UK: {
-        existing: { revenue: 19200, cost: 1920, roas: 10 },
-        new: { revenue: 12800, cost: 1920, roas: 6.67 }
-      },
-      US: {
-        existing: { revenue: 96000, cost: 9600, roas: 10 },
-        new: { revenue: 64000, cost: 9600, roas: 6.67 }
-      }
-    }
-  },
-  {
-    month: 'Month 2',
-    total: { revenue: 205920, cost: 20592, roas: 10 },
-    breakdown: {
-      UK: {
-        existing: { revenue: 19776, cost: 1978, roas: 10 },
-        new: { revenue: 13184, cost: 1978, roas: 6.67 }
-      },
-      US: {
-        existing: { revenue: 98592, cost: 9859, roas: 10 },
-        new: { revenue: 65768, cost: 9859, roas: 6.67 }
-      }
-    }
-  },
-  {
-    month: 'Month 3',
-    total: { revenue: 210038, cost: 21004, roas: 10 },
-    breakdown: {
-      UK: {
-        existing: { revenue: 20171, cost: 2017, roas: 10 },
-        new: { revenue: 13452, cost: 2017, roas: 6.67 }
-      },
-      US: {
-        existing: { revenue: 100819, cost: 10082, roas: 10 },
-        new: { revenue: 67296, cost: 10082, roas: 6.67 }
-      }
-    }
-  }
-];
-
 export default function Home() {
-  const [showRegions, setShowRegions] = useState(false);
+  const [showUK, setShowUK] = useState(true);
+  const [showUS, setShowUS] = useState(true);
 
   return (
     <div style={{ backgroundColor: '#0a0a0a', color: '#fff', fontFamily: 'Arial', padding: '2rem' }}>
-      <Head><title>TRC Forecasting GPT – Full Forecast Tool</title></Head>
-      <h1 style={{ color: '#00BFFF' }}>📊 TRC Forecasting GPT</h1>
-
-      <div style={{ marginBottom: '1.5rem' }}>
+      <Head>
+        <title>TRC Forecast GPT – Clean UI</title>
+      </Head>
+      <h1 style={{ color: '#00BFFF' }}>📊 TRC Forecast GPT</h1>
+      <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>
+        Toggle below to show/hide breakdowns by region per month.
+      </p>
+      <div style={{ marginBottom: '1rem' }}>
         <label>
-          <input type="checkbox" checked={showRegions} onChange={() => setShowRegions(!showRegions)} />
-          Show region breakdowns
+          <input type="checkbox" checked={showUK} onChange={() => setShowUK(!showUK)} />
+          Show UK
         </label>
+        <span style={{ marginLeft: '2rem' }}>
+          <label>
+            <input type="checkbox" checked={showUS} onChange={() => setShowUS(!showUS)} />
+            Show US
+          </label>
+        </span>
       </div>
-
-      {sampleData.map((entry, idx) => (
-        <div key={idx} style={{ background: '#111', borderRadius: '8px', padding: '1rem', marginBottom: '1rem' }}>
-          <h2 style={{ color: '#00BFFF' }}>{entry.month}</h2>
-          <p><strong>Total</strong> – Revenue: £{entry.total.revenue.toLocaleString()}, Cost: £{entry.total.cost.toLocaleString()}, ROAS: {entry.total.roas.toFixed(2)}x</p>
-
-          {showRegions && (
-            <div style={{ marginLeft: '1rem' }}>
-              {Object.entries(entry.breakdown).map(([region, segments]) => (
-                <div key={region}>
-                  <h4>{region === 'UK' ? '🇬🇧 UK' : '🇺🇸 US'}</h4>
-                  {Object.entries(segments).map(([segment, values]) => (
-                    <p key={segment}>
-                      {segment === 'existing' ? 'Existing' : 'New'} – Revenue: £{values.revenue.toLocaleString()}, 
-                      Cost: £{values.cost.toLocaleString()}, 
-                      ROAS: {values.roas.toFixed(2)}x
-                    </p>
-                  ))}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
+      <div style={{ backgroundColor: '#111', padding: '1rem', borderRadius: '8px' }}>
+        <h2 style={{ color: '#00BFFF' }}>📅 Month 1</h2>
+        {showUK && (
+          <>
+            <p>🇬🇧 UK – Existing: £19,200.00 | Cost: £1,920.00 | ROAS: 10.00x</p>
+            <p>🇬🇧 UK – New: £12,800.00 | Cost: £1,920.00 | ROAS: 6.67x</p>
+          </>
+        )}
+        {showUS && (
+          <>
+            <p>🇺🇸 US – Existing: £96,000.00 | Cost: £9,600.00 | ROAS: 10.00x</p>
+            <p>🇺🇸 US – New: £64,000.00 | Cost: £9,600.00 | ROAS: 6.67x</p>
+          </>
+        )}
+      </div>
     </div>
   );
 }
