@@ -60,7 +60,7 @@ export default function Forecast() {
   const [cashbackNew, setCashbackNew] = useState('');
   const [results, setResults] = useState(null);
   const [view, setView] = useState('global');
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
   const resultsRef = useRef(null);
 
   useEffect(() => {
