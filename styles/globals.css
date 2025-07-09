@@ -30,7 +30,7 @@ button:hover {
 }
 
 .container {
-  max-width: 720px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 50px 20px;
   display: flex;
@@ -148,7 +148,7 @@ form.form label.checkbox {
 }
 
 .monthly-table {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
 }
 
 .totals-row {

@@ -437,7 +437,14 @@ export default function Forecast() {
                 const spendMax = Math.max(
                   ...results.monthly.map((m) => m.adSpend)
                 );
-                const max = Math.max(revMax, spendMax);
+                const aovCalc =
+                  results.total.orders > 0
+                    ? results.total.revenue / results.total.orders
+                    : 0;
+                const orderMax = Math.max(
+                  ...results.monthly.map((m) => m.orders * aovCalc)
+                );
+                const max = Math.max(revMax, spendMax, orderMax);
                 const pathFor = (data) =>
                   data
                     .map((v, idx) => {
@@ -448,6 +455,9 @@ export default function Forecast() {
                     .join(' ');
                 const revPath = pathFor(results.monthly.map((m) => m.revenue));
                 const spendPath = pathFor(results.monthly.map((m) => m.adSpend));
+                const orderPath = pathFor(
+                  results.monthly.map((m) => m.orders * aovCalc)
+                );
                 return (
                   <>
                     <path
@@ -462,6 +472,14 @@ export default function Forecast() {
                       d={spendPath}
                       fill="none"
                       stroke="#888"
+                      strokeWidth="3"
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d={orderPath}
+                      fill="none"
+                      stroke="#2aa4c9"
                       strokeWidth="3"
                       strokeLinejoin="round"
                       strokeLinecap="round"
