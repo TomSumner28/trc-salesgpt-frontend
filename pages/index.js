@@ -311,7 +311,8 @@ export default function Forecast() {
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
       heightLeft -= pdf.internal.pageSize.getHeight();
     }
-    pdf.save('forecast.pdf');
+    const fileName = retailer ? `${retailer}-forecast.pdf` : 'forecast.pdf';
+    pdf.save(fileName);
   };
 
   return (
@@ -440,7 +441,7 @@ export default function Forecast() {
         </form>
         {results && (
           <div className="results" ref={resultsRef}>
-            <h2>Forecast</h2>
+            <h2>{retailer ? `${retailer} Forecast` : 'Forecast'}</h2>
             <div className="view-toggle">
               <select value={view} onChange={(e) => setView(e.target.value)}>
                 <option value="global">Global</option>
