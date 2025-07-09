@@ -181,3 +181,26 @@ form.form label.checkbox {
 .theme-switch button {
   margin-top: 0;
 }
+
+.side-by-side {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.side-by-side > * {
+  flex: 1;
+  min-width: 280px;
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.summary-table th,
+.summary-table td {
+  padding: 8px;
+  border: 1px solid var(--border-color);
+}

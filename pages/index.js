@@ -43,6 +43,100 @@ export default function Forecast() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
+  const GlobalView = () => (
+    <table className="summary-table">
+      <tbody>
+        <tr>
+          <th>Expected Orders</th>
+          <td>{formatNumber(Math.round(results.total.orders))}</td>
+        </tr>
+        <tr>
+          <th>Revenue</th>
+          <td>
+            {formatCurrency(
+              results.total.revenue,
+              results.currency === 'USD'
+            )}
+          </td>
+        </tr>
+        <tr>
+          <th>Total Cashback</th>
+          <td>
+            {formatCurrency(
+              results.total.cashback,
+              results.currency === 'USD'
+            )}
+          </td>
+        </tr>
+        <tr>
+          <th>Net Revenue</th>
+          <td>
+            {formatCurrency(
+              results.total.netRevenue,
+              results.currency === 'USD'
+            )}
+          </td>
+        </tr>
+        <tr>
+          <th>ROAS</th>
+          <td>{results.total.roas.toFixed(2)}x</td>
+        </tr>
+      </tbody>
+    </table>
+  );
+
+  const RegionView = () => (
+    <table className="monthly-table">
+      <thead>
+        <tr>
+          <th>Region</th>
+          <th>Orders</th>
+          <th>Revenue</th>
+          <th>Total Cashback</th>
+          <th>Net Revenue</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Object.entries(results.perRegion).map(([r, d]) => (
+          <tr key={r}>
+            <td>{r}</td>
+            <td>{formatNumber(Math.round(d.orders))}</td>
+            <td>{formatCurrency(d.revenue, results.currency === 'USD')}</td>
+            <td>{formatCurrency(d.cashback, results.currency === 'USD')}</td>
+            <td>{formatCurrency(d.netRevenue, results.currency === 'USD')}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
+  const OfferView = () => (
+    results.offerBreakdown && (
+      <table className="monthly-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Orders</th>
+            <th>Revenue</th>
+            <th>Total Cashback</th>
+            <th>Net Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(results.offerBreakdown).map(([t, d]) => (
+            <tr key={t}>
+              <td>{t}</td>
+              <td>{formatNumber(Math.round(d.orders))}</td>
+              <td>{formatCurrency(d.revenue, results.currency === 'USD')}</td>
+              <td>{formatCurrency(d.cashback, results.currency === 'USD')}</td>
+              <td>{formatCurrency(d.netRevenue, results.currency === 'USD')}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )
+  );
+
 
   const toggleRegion = (region) => {
     setRegions((prev) => {
@@ -310,115 +404,29 @@ export default function Forecast() {
                 {results.offerBreakdown && (
                   <option value="offer">By Offer Type</option>
                 )}
+                <option value="all">View All</option>
               </select>
             </div>
-            {view === 'global' && (
-              <>
-                <p>
-                  Expected Orders:{' '}
-                  {formatNumber(Math.round(results.total.orders))}
-                </p>
-                <p>
-                  Revenue:{' '}
-                  {formatCurrency(
-                    results.total.revenue,
-                    results.currency === 'USD'
-                  )}
-                </p>
-                <p>
-                  Total Cashback:{' '}
-                  {formatCurrency(
-                    results.total.cashback,
-                    results.currency === 'USD'
-                  )}
-                </p>
-                <p>
-                  Net Revenue:{' '}
-                  {formatCurrency(
-                    results.total.netRevenue,
-                    results.currency === 'USD'
-                  )}
-                </p>
-                <p>ROAS: {results.total.roas.toFixed(2)}x</p>
-              </>
-            )}
-            {view === 'region' && (
-              <table className="monthly-table">
-                <thead>
-                  <tr>
-                    <th>Region</th>
-                    <th>Orders</th>
-                    <th>Revenue</th>
-                    <th>Total Cashback</th>
-                    <th>Net Revenue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(results.perRegion).map(([r, d]) => (
-                    <tr key={r}>
-                      <td>{r}</td>
-                      <td>{formatNumber(Math.round(d.orders))}</td>
-                      <td>
-                        {formatCurrency(
-                          d.revenue,
-                          results.currency === 'USD'
-                        )}
-                      </td>
-                      <td>
-                        {formatCurrency(
-                          d.cashback,
-                          results.currency === 'USD'
-                        )}
-                      </td>
-                      <td>
-                        {formatCurrency(
-                          d.netRevenue,
-                          results.currency === 'USD'
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-            {view === 'offer' && results.offerBreakdown && (
-              <table className="monthly-table">
-                <thead>
-                  <tr>
-                    <th>Type</th>
-                    <th>Orders</th>
-                    <th>Revenue</th>
-                    <th>Total Cashback</th>
-                    <th>Net Revenue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(results.offerBreakdown).map(([t, d]) => (
-                    <tr key={t}>
-                      <td>{t}</td>
-                      <td>{formatNumber(Math.round(d.orders))}</td>
-                      <td>
-                        {formatCurrency(
-                          d.revenue,
-                          results.currency === 'USD'
-                        )}
-                      </td>
-                      <td>
-                        {formatCurrency(
-                          d.cashback,
-                          results.currency === 'USD'
-                        )}
-                      </td>
-                      <td>
-                        {formatCurrency(
-                          d.netRevenue,
-                          results.currency === 'USD'
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {view === 'global' && <GlobalView />}
+            {view === 'region' && <RegionView />}
+            {view === 'offer' && <OfferView />}
+            {view === 'all' && (
+              <div className="side-by-side">
+                <div>
+                  <h3>Global</h3>
+                  <GlobalView />
+                </div>
+                <div>
+                  <h3>By Region</h3>
+                  <RegionView />
+                </div>
+                {results.offerBreakdown && (
+                  <div>
+                    <h3>By Offer Type</h3>
+                    <OfferView />
+                  </div>
+                )}
+              </div>
             )}
 
             <h3>Monthly Projection</h3>
@@ -427,7 +435,7 @@ export default function Forecast() {
                 <tr>
                   <th></th>
                   {results.monthly.map((_, i) => (
-                    <th key={i}>{`M${i + 1}`}</th>
+                    <th key={i}>{`Month ${i + 1}`}</th>
                   ))}
                   <th>Total</th>
                 </tr>
