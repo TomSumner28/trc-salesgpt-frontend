@@ -78,6 +78,26 @@ export default function Home() {
     setResults({monthlyData,totalRev,totalCost,avgCost:totalCost/6,isUSD,pieData});
   };
 
+  const exportExcel = async () => {
+    if (!results) return;
+    const XLSX = await import('xlsx');
+    const data = results.monthlyData.flatMap(m =>
+      m.details.map(d => ({
+        Month: m.name,
+        Region: d.region,
+        Segment: d.segment,
+        Sales: d.sales,
+        Revenue: d.revenue,
+        Cost: d.cost,
+        ROAS: d.roas
+      }))
+    );
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Forecast');
+    XLSX.writeFile(wb, 'forecast.xlsx');
+  };
+
   return (
     <div style={{background:'#0a0a0a',color:'#fff',padding:'2rem',fontFamily:'Arial'}}>
       <Head><title>TRC Forecast GPT Tactical</title></Head>
@@ -97,6 +117,7 @@ export default function Home() {
       <label style={{marginLeft:'1rem'}}>Cashback: <input type="range" min="0" max="100" onChange={e=>setCashback(Number(e.target.value))}/>{cashback}%</label>
       <button onClick={handleSubmit} style={{marginTop:'1rem',padding:'0.75rem 1.5rem',background:'#00BFFF',border:'none',borderRadius:'6px',fontWeight:'bold'}}>Generate</button>
       {results && <>
+        <button onClick={exportExcel} style={{margin:'1rem 0',padding:'0.5rem 1rem',background:'#003F73',border:'none',borderRadius:'6px'}}>Download to Excel</button>
         <h2>Campaign Summary</h2>
         <p>Total Revenue: {formatCurrency(results.totalRev,results.isUSD)}</p>
         <p>Total Cost: {formatCurrency(results.totalCost,results.isUSD)}</p>

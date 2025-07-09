@@ -10,4 +10,5 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "recharts": "latest"}
+    "recharts": "latest",
+    "xlsx": "0.20.1"
