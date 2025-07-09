@@ -18,7 +18,7 @@ const CONVERSION_BY_TIER = {
 
 export default function Forecast() {
   const [retailer, setRetailer] = useState('');
-  const [region, setRegion] = useState('UK');
+  const [regions, setRegions] = useState(['UK']);
   const [tier, setTier] = useState('1');
   const [online, setOnline] = useState(false);
   const [instore, setInstore] = useState(false);
@@ -28,9 +28,14 @@ export default function Forecast() {
   const [cashbackNew, setCashbackNew] = useState('');
   const [results, setResults] = useState(null);
 
+  const handleRegionChange = (e) => {
+    const opts = Array.from(e.target.selectedOptions).map((o) => o.value);
+    setRegions(opts);
+  };
+
   const calculate = (e) => {
     e.preventDefault();
-    const reach = REACH_BY_REGION[region] || 0;
+    const reach = regions.reduce((acc, r) => acc + (REACH_BY_REGION[r] || 0), 0);
     let conversion = CONVERSION_BY_TIER[tier] || 0;
 
     const storeCount = parseInt(stores, 10) || 0;
@@ -86,8 +91,8 @@ export default function Forecast() {
             />
           </label>
           <label>
-            Region
-            <select value={region} onChange={(e) => setRegion(e.target.value)}>
+            Regions
+            <select multiple value={regions} onChange={handleRegionChange}>
               {Object.keys(REACH_BY_REGION).map((r) => (
                 <option key={r} value={r}>
                   {r}

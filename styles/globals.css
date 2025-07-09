@@ -1,14 +1,17 @@
-
 body {
   background-color: #0c0c0f;
-  color: white;
+  color: #e4e4e4;
   font-family: 'Arial', sans-serif;
   margin: 0;
   padding: 0;
 }
 
+:root {
+  --brand: #820263;
+}
+
 button {
-  background-color: #007bff;
+  background-color: var(--brand);
   border: none;
   padding: 12px 24px;
   border-radius: 8px;
@@ -16,16 +19,17 @@ button {
   cursor: pointer;
   color: white;
   margin-top: 20px;
+  transition: background-color 0.2s ease;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: #5a0145;
 }
 
 .container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 40px;
+  padding: 40px 20px;
 }
 
 form.form label {
@@ -36,19 +40,27 @@ form.form label {
 form.form input,
 form.form select {
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   margin-top: 4px;
   border-radius: 4px;
-  border: 1px solid #555;
+  border: 1px solid #444;
   background: #1c1c1f;
   color: white;
+}
+
+form.form select[multiple] {
+  height: 90px;
 }
 
 form.form label.checkbox {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .results {
   margin-top: 30px;
+  background: #1c1c1f;
+  padding: 20px;
+  border-radius: 8px;
 }
