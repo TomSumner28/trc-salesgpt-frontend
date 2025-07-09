@@ -1,15 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
+:root {
+  --brand: #820263;
+  --bg: #0b0b0e;
+  --text: #e4e4e4;
+  --panel-bg: #121214;
+  --input-bg: #1c1c1f;
+  --border-color: #333;
+}
+
+[data-theme='light'] {
+  --bg: #ffffff;
+  --text: #111111;
+  --panel-bg: #f5f5f5;
+  --input-bg: #ffffff;
+  --border-color: #cccccc;
+}
+
 body {
-  background-color: #0b0b0e;
-  color: #e4e4e4;
+  background-color: var(--bg);
+  color: var(--text);
   font-family: 'Poppins', sans-serif;
   margin: 0;
   padding: 0;
-}
-
-:root {
-  --brand: #820263;
 }
 
 button {
@@ -36,10 +49,11 @@ button:hover {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  position: relative;
 }
 
 form.form {
-  background: #121214;
+  background: var(--panel-bg);
   padding: 24px;
   border-radius: 12px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
@@ -58,7 +72,7 @@ h1 {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   padding: 10px;
   border-radius: 8px;
 }
@@ -79,9 +93,9 @@ form.form select {
   padding: 10px;
   margin-top: 4px;
   border-radius: 4px;
-  border: 1px solid #444;
-  background: #1c1c1f;
-  color: white;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text);
 }
 
 form.form input[type='checkbox'] {
@@ -109,7 +123,7 @@ form.form label.checkbox {
 
 .results {
   margin-top: 30px;
-  background: #121214;
+  background: var(--panel-bg);
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -139,7 +153,7 @@ form.form label.checkbox {
 
 .results th,
 .results td {
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   padding: 12px;
 }
 
@@ -153,7 +167,7 @@ form.form label.checkbox {
 
 .totals-row {
   font-weight: 600;
-  background: #1c1c1f;
+  background: var(--input-bg);
 }
 
 
@@ -189,4 +203,14 @@ form.form label.checkbox {
 
 .chart-legend .orders {
   background: #2aa4c9;
+}
+
+.theme-switch {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.theme-switch button {
+  margin-top: 0;
 }

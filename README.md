@@ -8,4 +8,4 @@ This project contains a small Next.js frontend for the TRC SalesGPT demo.
 
 ## Features
 
-- **Forecasting tool** – The homepage hosts **The Reward Collection Forecasting Tool**. Enter reach for each selected region, choose the retailer tier, online/instore options and cashback rates. Results include a six‑month growth curve with a MoM line chart showing revenue, spend and sales with axis labels and a legend. The monthly table spans a wider layout and displays totals.
+- **Forecasting tool** – The homepage hosts **The Reward Collection Forecasting Tool**. Enter reach for each selected region, choose the retailer tier, online/instore options and cashback rates. Results include a six‑month growth curve with an interactive MoM line chart showing revenue, spend and sales. The table layout is widened and totals are shown horizontally by month. A light/dark mode toggle is available from the top right.

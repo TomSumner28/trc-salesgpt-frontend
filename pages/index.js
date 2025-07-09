@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 
 const REGIONS = ['UK', 'US', 'EU'];
@@ -40,6 +40,12 @@ export default function Forecast() {
   const [cashbackNew, setCashbackNew] = useState('');
   const [results, setResults] = useState(null);
   const [view, setView] = useState('global');
+  const [theme, setTheme] = useState('dark');
+  const [hoverIdx, setHoverIdx] = useState(null);
+
+  useEffect(() => {
+    document.body.dataset.theme = theme;
+  }, [theme]);
 
 
   const toggleRegion = (region) => {
@@ -168,6 +174,11 @@ export default function Forecast() {
         <title>The Reward Collection Forecasting Tool</title>
       </Head>
       <main className="container">
+        <div className="theme-switch">
+          <button type="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          </button>
+        </div>
         <h1>The Reward Collection Forecasting Tool</h1>
         <p style={{ textAlign: 'center' }}>
           Enter campaign details below to estimate performance.
@@ -376,57 +387,45 @@ export default function Forecast() {
             <table className="monthly-table">
               <thead>
                 <tr>
-                  <th>Month</th>
-                  <th>Orders</th>
-                  <th>Revenue</th>
-                  <th>Ad Spend</th>
+                  <th></th>
+                  {results.monthly.map((_, i) => (
+                    <th key={i}>{`M${i + 1}`}</th>
+                  ))}
+                  <th>Total</th>
                 </tr>
               </thead>
               <tbody>
-                {results.monthly.map((m, i) => (
-                  <tr key={i}>
-                    <td>{`Month ${i + 1}`}</td>
-                    <td>{formatNumber(Math.round(m.orders))}</td>
-                    <td>
-                      {formatCurrency(
-                        m.revenue,
-                        results.currency === 'USD'
-                      )}
-                    </td>
-                    <td>
-                      {formatCurrency(
-                        m.adSpend,
-                        results.currency === 'USD'
-                      )}
-                    </td>
-                  </tr>
-                ))}
                 {(() => {
-                  const totals = results.monthly.reduce(
-                    (acc, m) => ({
-                      orders: acc.orders + m.orders,
-                      revenue: acc.revenue + m.revenue,
-                      adSpend: acc.adSpend + m.adSpend,
-                    }),
-                    { orders: 0, revenue: 0, adSpend: 0 }
-                  );
+                  const makeRow = (label, arr, formatter) => {
+                    const total = arr.reduce((a, b) => a + b, 0);
+                    return (
+                      <tr>
+                        <td>{label}</td>
+                        {arr.map((v, i) => (
+                          <td key={i}>{formatter(v)}</td>
+                        ))}
+                        <td>{formatter(total)}</td>
+                      </tr>
+                    );
+                  };
                   return (
-                    <tr className="totals-row">
-                      <td>Total</td>
-                      <td>{formatNumber(Math.round(totals.orders))}</td>
-                      <td>
-                        {formatCurrency(
-                          totals.revenue,
-                          results.currency === 'USD'
-                        )}
-                      </td>
-                      <td>
-                        {formatCurrency(
-                          totals.adSpend,
-                          results.currency === 'USD'
-                        )}
-                      </td>
-                    </tr>
+                    <>
+                      {makeRow(
+                        'Orders',
+                        results.monthly.map((m) => m.orders),
+                        (v) => formatNumber(Math.round(v))
+                      )}
+                      {makeRow(
+                        'Revenue',
+                        results.monthly.map((m) => m.revenue),
+                        (v) => formatCurrency(v, results.currency === 'USD')
+                      )}
+                      {makeRow(
+                        'Ad Spend',
+                        results.monthly.map((m) => m.adSpend),
+                        (v) => formatCurrency(v, results.currency === 'USD')
+                      )}
+                    </>
                   );
                 })()}
               </tbody>
@@ -435,65 +434,46 @@ export default function Forecast() {
               viewBox={`0 0 ${CHART_WIDTH + CHART_PADDING + 20} ${CHART_HEIGHT + 40}`}
               className="chart"
               preserveAspectRatio="none"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left - CHART_PADDING;
+                const idx = Math.round((x / CHART_WIDTH) * (results.monthly.length - 1));
+                if (idx >= 0 && idx < results.monthly.length) {
+                  setHoverIdx(idx);
+                } else {
+                  setHoverIdx(null);
+                }
+              }}
+              onMouseLeave={() => setHoverIdx(null)}
             >
               {(() => {
                 const revMax = Math.max(...results.monthly.map((m) => m.revenue));
-                const spendMax = Math.max(
-                  ...results.monthly.map((m) => m.adSpend)
-                );
-                const aovCalc =
-                  results.total.orders > 0
-                    ? results.total.revenue / results.total.orders
-                    : 0;
-                const orderMax = Math.max(
-                  ...results.monthly.map((m) => m.orders * aovCalc)
-                );
+                const spendMax = Math.max(...results.monthly.map((m) => m.adSpend));
+                const aovCalc = results.total.orders > 0 ? results.total.revenue / results.total.orders : 0;
+                const orderMax = Math.max(...results.monthly.map((m) => m.orders * aovCalc));
                 const max = Math.max(revMax, spendMax, orderMax);
-                const pathFor = (data) =>
-                  data
-                    .map((v, idx) => {
-                      const x =
-                        CHART_PADDING + (idx / (data.length - 1)) * CHART_WIDTH;
-                      const y =
-                        CHART_HEIGHT - (v / max) * (CHART_HEIGHT - 20) + 10;
-                      return `${idx === 0 ? 'M' : 'L'}${x},${y}`;
-                    })
-                    .join(' ');
-                const revPath = pathFor(results.monthly.map((m) => m.revenue));
-                const spendPath = pathFor(results.monthly.map((m) => m.adSpend));
-                const orderPath = pathFor(
-                  results.monthly.map((m) => m.orders * aovCalc)
-                );
+                const pointsFor = (data) =>
+                  data.map((v, idx) => {
+                    const x = CHART_PADDING + (idx / (data.length - 1)) * CHART_WIDTH;
+                    const y = CHART_HEIGHT - (v / max) * (CHART_HEIGHT - 20) + 10;
+                    return { x, y };
+                  });
+                const revPts = pointsFor(results.monthly.map((m) => m.revenue));
+                const spendPts = pointsFor(results.monthly.map((m) => m.adSpend));
+                const orderPts = pointsFor(results.monthly.map((m) => m.orders * aovCalc));
+                const pathFrom = (pts) => pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
                 const ticks = 4;
+                const pt = hoverIdx != null ? revPts[hoverIdx] : null;
                 return (
                   <>
-                    <line
-                      x1={CHART_PADDING}
-                      y1={CHART_HEIGHT}
-                      x2={CHART_PADDING + CHART_WIDTH}
-                      y2={CHART_HEIGHT}
-                      stroke="#555"
-                    />
-                    <line
-                      x1={CHART_PADDING}
-                      y1={10}
-                      x2={CHART_PADDING}
-                      y2={CHART_HEIGHT}
-                      stroke="#555"
-                    />
+                    <line x1={CHART_PADDING} y1={CHART_HEIGHT} x2={CHART_PADDING + CHART_WIDTH} y2={CHART_HEIGHT} stroke="#555" />
+                    <line x1={CHART_PADDING} y1={10} x2={CHART_PADDING} y2={CHART_HEIGHT} stroke="#555" />
                     {Array.from({ length: ticks + 1 }, (_, i) => {
                       const val = (max * i) / ticks;
-                      const y =
-                        CHART_HEIGHT - (val / max) * (CHART_HEIGHT - 20) + 10;
+                      const y = CHART_HEIGHT - (val / max) * (CHART_HEIGHT - 20) + 10;
                       return (
                         <g key={i}>
-                          <line
-                            x1={CHART_PADDING - 4}
-                            y1={y}
-                            x2={CHART_PADDING}
-                            y2={y}
-                            stroke="#555"
-                          />
+                          <line x1={CHART_PADDING - 4} y1={y} x2={CHART_PADDING} y2={y} stroke="#555" />
                           <text x={0} y={y + 4} fontSize="10" fill="#aaa">
                             {formatCurrency(val, results.currency === 'USD')}
                           </text>
@@ -501,45 +481,33 @@ export default function Forecast() {
                       );
                     })}
                     {results.monthly.map((_, idx) => {
-                      const x =
-                        CHART_PADDING + (idx / (results.monthly.length - 1)) * CHART_WIDTH;
+                      const x = CHART_PADDING + (idx / (results.monthly.length - 1)) * CHART_WIDTH;
                       return (
-                        <text
-                          key={idx}
-                          x={x}
-                          y={CHART_HEIGHT + 15}
-                          textAnchor="middle"
-                          fontSize="10"
-                          fill="#aaa"
-                        >
+                        <text key={idx} x={x} y={CHART_HEIGHT + 15} textAnchor="middle" fontSize="10" fill="#aaa">
                           {`M${idx + 1}`}
                         </text>
                       );
                     })}
-                    <path
-                      d={revPath}
-                      fill="none"
-                      stroke="var(--brand)"
-                      strokeWidth="3"
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d={spendPath}
-                      fill="none"
-                      stroke="#888"
-                      strokeWidth="3"
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d={orderPath}
-                      fill="none"
-                      stroke="#2aa4c9"
-                      strokeWidth="3"
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                    />
+                    <path d={pathFrom(revPts)} fill="none" stroke="var(--brand)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+                    <path d={pathFrom(spendPts)} fill="none" stroke="#888" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+                    <path d={pathFrom(orderPts)} fill="none" stroke="#2aa4c9" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+                    {hoverIdx != null && (
+                      <g>
+                        <line x1={pt.x} x2={pt.x} y1={10} y2={CHART_HEIGHT} stroke="#555" strokeDasharray="4" />
+                        <circle cx={revPts[hoverIdx].x} cy={revPts[hoverIdx].y} r="4" fill="var(--brand)" />
+                        <circle cx={spendPts[hoverIdx].x} cy={spendPts[hoverIdx].y} r="4" fill="#888" />
+                        <circle cx={orderPts[hoverIdx].x} cy={orderPts[hoverIdx].y} r="4" fill="#2aa4c9" />
+                        <text x={pt.x} y={20} textAnchor="middle" fontSize="10" fill="#aaa">
+                          {formatCurrency(results.monthly[hoverIdx].revenue, results.currency === 'USD')}
+                        </text>
+                        <text x={pt.x} y={32} textAnchor="middle" fontSize="10" fill="#aaa">
+                          {formatCurrency(results.monthly[hoverIdx].adSpend, results.currency === 'USD')}
+                        </text>
+                        <text x={pt.x} y={44} textAnchor="middle" fontSize="10" fill="#aaa">
+                          {formatNumber(Math.round(results.monthly[hoverIdx].orders))} orders
+                        </text>
+                      </g>
+                    )}
                   </>
                 );
               })()}
