@@ -26,6 +26,14 @@ body {
   padding: 0;
 }
 
+a {
+  color: var(--brand);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
 button {
   background-color: var(--brand);
   border: none;
@@ -181,6 +189,13 @@ form.form label.checkbox {
   position: absolute;
   top: 20px;
   right: 20px;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
 }
 
 .theme-switch button {

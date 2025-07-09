@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
+import { usePublishers, computeReach } from '../lib/usePublishers';
 
 const REGIONS = ['UK', 'US', 'EU'];
 
@@ -33,6 +35,7 @@ export default function Forecast() {
   const [stores, setStores] = useState('');
   const [aov, setAov] = useState('');
   const [reach, setReach] = useState({});
+  const [publishers] = usePublishers();
   const [cashbackExisting, setCashbackExisting] = useState('');
   const [cashbackNew, setCashbackNew] = useState('');
   const [results, setResults] = useState(null);
@@ -42,6 +45,15 @@ export default function Forecast() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    const includeNew = parseFloat(cashbackNew) > 0;
+    const obj = {};
+    regions.forEach((r) => {
+      obj[r] = computeReach(publishers, r, includeNew);
+    });
+    setReach(obj);
+  }, [regions, cashbackNew, publishers]);
 
   const GlobalView = () => (
     <table className="summary-table">
@@ -285,10 +297,16 @@ export default function Forecast() {
         <title>The Reward Collection Forecasting Tool</title>
       </Head>
       <main className="container">
-        <div className="theme-switch">
-          <button type="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-          </button>
+        <div className="top-bar">
+          <Link href="/publishers">Publishers</Link>
+          <div className="theme-switch">
+            <button
+              type="button"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            </button>
+          </div>
         </div>
         <h1>The Reward Collection Forecasting Tool</h1>
         <p style={{ textAlign: 'center' }}>
@@ -321,10 +339,13 @@ export default function Forecast() {
               <label key={`reach-${r}`} className="reach-input">
                 Reach {r}
                 <input
-                  type="number"
-                  value={reach[r] || ''}
+                  type="text"
+                  value={reach[r] ? formatNumber(reach[r]) : ''}
                   onChange={(e) =>
-                    setReach((curr) => ({ ...curr, [r]: e.target.value }))
+                    setReach((curr) => ({
+                      ...curr,
+                      [r]: parseInt(e.target.value.replace(/,/g, ''), 10) || 0,
+                    }))
                   }
                 />
               </label>
