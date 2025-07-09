@@ -128,3 +128,13 @@ form.form label.checkbox {
   border: 1px solid #333;
   padding: 8px;
 }
+
+.monthly-table {
+  font-size: 1.1rem;
+}
+
+.chart {
+  width: 100%;
+  height: 200px;
+  margin-top: 20px;
+}

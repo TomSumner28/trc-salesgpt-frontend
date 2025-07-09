@@ -12,6 +12,17 @@ const CONVERSION_BY_TIER = {
   6: 0.00005,
 };
 
+const MONTH_DELTAS = [0, 0.05, 0.07, -0.02, 0.06, 0.04];
+
+function formatNumber(n) {
+  return n.toLocaleString();
+}
+
+function formatCurrency(n, usd) {
+  const symbol = usd ? '$' : '£';
+  return symbol + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 export default function Forecast() {
   const [retailer, setRetailer] = useState('');
   const [regions, setRegions] = useState([]);
@@ -104,11 +115,20 @@ export default function Forecast() {
       perRegion[r] = { orders, revenue: rev, adSpend: spend };
     });
 
-    const monthly = Array.from({ length: 6 }).map(() => ({
-      orders: totalOrders / 6,
-      revenue: revenue / 6,
-      adSpend: adSpend / 6,
-    }));
+    const factors = [1];
+    for (let i = 1; i < MONTH_DELTAS.length; i++) {
+      factors[i] = factors[i - 1] * (1 + MONTH_DELTAS[i]);
+    }
+    const sumFactors = factors.reduce((a, b) => a + b, 0);
+    const monthly = factors.map((f) => {
+      const monthOrders = (totalOrders * f) / sumFactors;
+      const exRatio = hasExisting && hasNew ? 0.6 : hasNew && !hasExisting ? 0 : 1;
+      const nwRatio = hasExisting && hasNew ? 0.4 : hasNew && !hasExisting ? 1 : 0;
+      const monthRevenue = monthOrders * aovNum;
+      const monthAdSpend =
+        monthOrders * aovNum * ((existingCb * exRatio + newCb * nwRatio) / 100);
+      return { orders: monthOrders, revenue: monthRevenue, adSpend: monthAdSpend };
+    });
 
     const offerBreakdown =
       hasExisting && hasNew
@@ -126,11 +146,14 @@ export default function Forecast() {
           }
         : null;
 
+    const isUSD = regions.length === 1 && regions[0] === 'US';
+
     setResults({
       total: { orders: totalOrders, revenue, adSpend, roas },
       perRegion,
       monthly,
       offerBreakdown,
+      currency: isUSD ? 'USD' : 'GBP',
     });
   };
 
@@ -256,14 +279,29 @@ export default function Forecast() {
             </div>
             {view === 'global' && (
               <>
-                <p>Expected Orders: {results.total.orders.toFixed(0)}</p>
-                <p>Revenue: £{results.total.revenue.toFixed(2)}</p>
-                <p>Ad Spend: £{results.total.adSpend.toFixed(2)}</p>
+                <p>
+                  Expected Orders:{' '}
+                  {formatNumber(Math.round(results.total.orders))}
+                </p>
+                <p>
+                  Revenue:{' '}
+                  {formatCurrency(
+                    results.total.revenue,
+                    results.currency === 'USD'
+                  )}
+                </p>
+                <p>
+                  Ad Spend:{' '}
+                  {formatCurrency(
+                    results.total.adSpend,
+                    results.currency === 'USD'
+                  )}
+                </p>
                 <p>ROAS: {results.total.roas.toFixed(2)}x</p>
               </>
             )}
             {view === 'region' && (
-              <table>
+              <table className="monthly-table">
                 <thead>
                   <tr>
                     <th>Region</th>
@@ -276,16 +314,26 @@ export default function Forecast() {
                   {Object.entries(results.perRegion).map(([r, d]) => (
                     <tr key={r}>
                       <td>{r}</td>
-                      <td>{d.orders.toFixed(0)}</td>
-                      <td>£{d.revenue.toFixed(2)}</td>
-                      <td>£{d.adSpend.toFixed(2)}</td>
+                      <td>{formatNumber(Math.round(d.orders))}</td>
+                      <td>
+                        {formatCurrency(
+                          d.revenue,
+                          results.currency === 'USD'
+                        )}
+                      </td>
+                      <td>
+                        {formatCurrency(
+                          d.adSpend,
+                          results.currency === 'USD'
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             )}
             {view === 'offer' && results.offerBreakdown && (
-              <table>
+              <table className="monthly-table">
                 <thead>
                   <tr>
                     <th>Type</th>
@@ -298,9 +346,19 @@ export default function Forecast() {
                   {Object.entries(results.offerBreakdown).map(([t, d]) => (
                     <tr key={t}>
                       <td>{t}</td>
-                      <td>{d.orders.toFixed(0)}</td>
-                      <td>£{d.revenue.toFixed(2)}</td>
-                      <td>£{d.adSpend.toFixed(2)}</td>
+                      <td>{formatNumber(Math.round(d.orders))}</td>
+                      <td>
+                        {formatCurrency(
+                          d.revenue,
+                          results.currency === 'USD'
+                        )}
+                      </td>
+                      <td>
+                        {formatCurrency(
+                          d.adSpend,
+                          results.currency === 'USD'
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -308,7 +366,7 @@ export default function Forecast() {
             )}
 
             <h3>Monthly Projection</h3>
-            <table>
+            <table className="monthly-table">
               <thead>
                 <tr>
                   <th>Month</th>
@@ -321,13 +379,62 @@ export default function Forecast() {
                 {results.monthly.map((m, i) => (
                   <tr key={i}>
                     <td>{`Month ${i + 1}`}</td>
-                    <td>{m.orders.toFixed(0)}</td>
-                    <td>£{m.revenue.toFixed(2)}</td>
-                    <td>£{m.adSpend.toFixed(2)}</td>
+                    <td>{formatNumber(Math.round(m.orders))}</td>
+                    <td>
+                      {formatCurrency(
+                        m.revenue,
+                        results.currency === 'USD'
+                      )}
+                    </td>
+                    <td>
+                      {formatCurrency(
+                        m.adSpend,
+                        results.currency === 'USD'
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            <svg
+              viewBox="0 0 600 200"
+              className="chart"
+              preserveAspectRatio="none"
+            >
+              {(() => {
+                const revMax = Math.max(...results.monthly.map((m) => m.revenue));
+                const spendMax = Math.max(
+                  ...results.monthly.map((m) => m.adSpend)
+                );
+                const max = Math.max(revMax, spendMax);
+                const points = (data) =>
+                  data
+                    .map((v, idx) => {
+                      const x = (idx / 5) * 600;
+                      const y = 200 - (v / max) * 180 - 10;
+                      return `${x},${y}`;
+                    })
+                    .join(' ');
+                const revPts = points(results.monthly.map((m) => m.revenue));
+                const spendPts = points(results.monthly.map((m) => m.adSpend));
+                return (
+                  <>
+                    <polyline
+                      fill="none"
+                      stroke="var(--brand)"
+                      strokeWidth="3"
+                      points={revPts}
+                    />
+                    <polyline
+                      fill="none"
+                      stroke="#888"
+                      strokeWidth="3"
+                      points={spendPts}
+                    />
+                  </>
+                );
+              })()}
+            </svg>
           </div>
         )}
       </main>
