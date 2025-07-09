@@ -83,6 +83,9 @@ export default function Forecast() {
       </Head>
       <main className="container">
         <h1>Forecasting GPT</h1>
+        <p style={{ textAlign: 'center' }}>
+          Enter campaign details below to estimate performance.
+        </p>
         <form onSubmit={calculate} className="form">
           <label>
             Retailer Name
@@ -93,8 +96,8 @@ export default function Forecast() {
               required
             />
           </label>
-          <div className="region-group">
-            <span>Regions</span>
+          <fieldset className="region-group">
+            <legend>Regions</legend>
             {Object.keys(REACH_BY_REGION).map((r) => (
               <label key={r} className="checkbox">
                 <input
@@ -105,7 +108,7 @@ export default function Forecast() {
                 {r}
               </label>
             ))}
-          </div>
+          </fieldset>
           <label>
             Tier
             <select value={tier} onChange={(e) => setTier(e.target.value)}>
