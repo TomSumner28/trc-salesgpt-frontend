@@ -44,7 +44,7 @@ export default function Forecast() {
   const [hoverIdx, setHoverIdx] = useState(null);
 
   useEffect(() => {
-    document.body.dataset.theme = theme;
+    document.documentElement.dataset.theme = theme;
   }, [theme]);
 
 
@@ -103,10 +103,10 @@ export default function Forecast() {
     }
 
     const revenue = totalOrders * aovNum;
-    const adSpend =
+    const cashbackAmount =
       existingOrders * aovNum * (existingCb / 100) +
       newOrders * aovNum * (newCb / 100);
-    const roas = adSpend ? revenue / adSpend : 0;
+    const roas = cashbackAmount ? revenue / cashbackAmount : 0;
 
     Object.keys(perRegion).forEach((r) => {
       const orders = perRegion[r].orders;
@@ -121,9 +121,9 @@ export default function Forecast() {
         ex = orders;
       }
       const rev = orders * aovNum;
-      const spend =
+      const cashbackAmount =
         ex * aovNum * (existingCb / 100) + nw * aovNum * (newCb / 100);
-      perRegion[r] = { orders, revenue: rev, adSpend: spend };
+      perRegion[r] = { orders, revenue: rev, cashback: cashbackAmount };
     });
 
     const factors = [1];
@@ -136,9 +136,9 @@ export default function Forecast() {
       const exRatio = hasExisting && hasNew ? 0.6 : hasNew && !hasExisting ? 0 : 1;
       const nwRatio = hasExisting && hasNew ? 0.4 : hasNew && !hasExisting ? 1 : 0;
       const monthRevenue = monthOrders * aovNum;
-      const monthAdSpend =
+      const monthCashback =
         monthOrders * aovNum * ((existingCb * exRatio + newCb * nwRatio) / 100);
-      return { orders: monthOrders, revenue: monthRevenue, adSpend: monthAdSpend };
+      return { orders: monthOrders, revenue: monthRevenue, cashback: monthCashback };
     });
 
     const offerBreakdown =
@@ -147,12 +147,12 @@ export default function Forecast() {
             existing: {
               orders: existingOrders,
               revenue: existingOrders * aovNum,
-              adSpend: existingOrders * aovNum * (existingCb / 100),
+              cashback: existingOrders * aovNum * (existingCb / 100),
             },
             new: {
               orders: newOrders,
               revenue: newOrders * aovNum,
-              adSpend: newOrders * aovNum * (newCb / 100),
+              cashback: newOrders * aovNum * (newCb / 100),
             },
           }
         : null;
@@ -160,7 +160,7 @@ export default function Forecast() {
     const isUSD = regions.length === 1 && regions[0] === 'US';
 
     setResults({
-      total: { orders: totalOrders, revenue, adSpend, roas },
+      total: { orders: totalOrders, revenue, cashback: cashbackAmount, roas },
       perRegion,
       monthly,
       offerBreakdown,
@@ -309,9 +309,9 @@ export default function Forecast() {
                   )}
                 </p>
                 <p>
-                  Ad Spend:{' '}
+                  Total Cashback:{' '}
                   {formatCurrency(
-                    results.total.adSpend,
+                    results.total.cashback,
                     results.currency === 'USD'
                   )}
                 </p>
@@ -325,7 +325,7 @@ export default function Forecast() {
                     <th>Region</th>
                     <th>Orders</th>
                     <th>Revenue</th>
-                    <th>Ad Spend</th>
+                    <th>Total Cashback</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -341,7 +341,7 @@ export default function Forecast() {
                       </td>
                       <td>
                         {formatCurrency(
-                          d.adSpend,
+                          d.cashback,
                           results.currency === 'USD'
                         )}
                       </td>
@@ -357,7 +357,7 @@ export default function Forecast() {
                     <th>Type</th>
                     <th>Orders</th>
                     <th>Revenue</th>
-                    <th>Ad Spend</th>
+                    <th>Total Cashback</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -373,7 +373,7 @@ export default function Forecast() {
                       </td>
                       <td>
                         {formatCurrency(
-                          d.adSpend,
+                          d.cashback,
                           results.currency === 'USD'
                         )}
                       </td>
@@ -421,8 +421,8 @@ export default function Forecast() {
                         (v) => formatCurrency(v, results.currency === 'USD')
                       )}
                       {makeRow(
-                        'Ad Spend',
-                        results.monthly.map((m) => m.adSpend),
+                        'Total Cashback',
+                        results.monthly.map((m) => m.cashback),
                         (v) => formatCurrency(v, results.currency === 'USD')
                       )}
                     </>
@@ -448,10 +448,10 @@ export default function Forecast() {
             >
               {(() => {
                 const revMax = Math.max(...results.monthly.map((m) => m.revenue));
-                const spendMax = Math.max(...results.monthly.map((m) => m.adSpend));
+                const cashbackMax = Math.max(...results.monthly.map((m) => m.cashback));
                 const aovCalc = results.total.orders > 0 ? results.total.revenue / results.total.orders : 0;
                 const orderMax = Math.max(...results.monthly.map((m) => m.orders * aovCalc));
-                const max = Math.max(revMax, spendMax, orderMax);
+                const max = Math.max(revMax, cashbackMax, orderMax);
                 const pointsFor = (data) =>
                   data.map((v, idx) => {
                     const x = CHART_PADDING + (idx / (data.length - 1)) * CHART_WIDTH;
@@ -459,7 +459,7 @@ export default function Forecast() {
                     return { x, y };
                   });
                 const revPts = pointsFor(results.monthly.map((m) => m.revenue));
-                const spendPts = pointsFor(results.monthly.map((m) => m.adSpend));
+                const cashbackPts = pointsFor(results.monthly.map((m) => m.cashback));
                 const orderPts = pointsFor(results.monthly.map((m) => m.orders * aovCalc));
                 const pathFrom = (pts) => pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
                 const ticks = 4;
@@ -489,19 +489,19 @@ export default function Forecast() {
                       );
                     })}
                     <path d={pathFrom(revPts)} fill="none" stroke="var(--brand)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
-                    <path d={pathFrom(spendPts)} fill="none" stroke="#888" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+                    <path d={pathFrom(cashbackPts)} fill="none" stroke="#888" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
                     <path d={pathFrom(orderPts)} fill="none" stroke="#2aa4c9" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
                     {hoverIdx != null && (
                       <g>
                         <line x1={pt.x} x2={pt.x} y1={10} y2={CHART_HEIGHT} stroke="#555" strokeDasharray="4" />
                         <circle cx={revPts[hoverIdx].x} cy={revPts[hoverIdx].y} r="4" fill="var(--brand)" />
-                        <circle cx={spendPts[hoverIdx].x} cy={spendPts[hoverIdx].y} r="4" fill="#888" />
+                        <circle cx={cashbackPts[hoverIdx].x} cy={cashbackPts[hoverIdx].y} r="4" fill="#888" />
                         <circle cx={orderPts[hoverIdx].x} cy={orderPts[hoverIdx].y} r="4" fill="#2aa4c9" />
                         <text x={pt.x} y={20} textAnchor="middle" fontSize="10" fill="#aaa">
                           {formatCurrency(results.monthly[hoverIdx].revenue, results.currency === 'USD')}
                         </text>
                         <text x={pt.x} y={32} textAnchor="middle" fontSize="10" fill="#aaa">
-                          {formatCurrency(results.monthly[hoverIdx].adSpend, results.currency === 'USD')}
+                          {formatCurrency(results.monthly[hoverIdx].cashback, results.currency === 'USD')}
                         </text>
                         <text x={pt.x} y={44} textAnchor="middle" fontSize="10" fill="#aaa">
                           {formatNumber(Math.round(results.monthly[hoverIdx].orders))} orders
@@ -514,7 +514,7 @@ export default function Forecast() {
             </svg>
             <div className="chart-legend">
               <span><span className="line revenue"></span>Revenue</span>
-              <span><span className="line spend"></span>Ad Spend</span>
+              <span><span className="line cashback"></span>Total Cashback</span>
               <span><span className="line orders"></span>Sales</span>
             </div>
           </div>
