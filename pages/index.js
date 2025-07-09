@@ -16,6 +16,9 @@ export default function Home() {
 
       <h1 style={{ fontSize: '2.5rem' }}>Welcome to TRC SalesGPT</h1>
       <button onClick={handleConnect}>Connect Microsoft</button>
+      <div style={{ marginTop: '20px' }}>
+        <a href="/forecast">Go to Forecasting GPT</a>
+      </div>
     </div>
   );
 }
