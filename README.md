@@ -8,5 +8,4 @@ This project contains a small Next.js frontend for the TRC SalesGPT demo.
 
 ## Features
 
-- **Microsoft connection** – Click the button on the homepage to link your Microsoft account.
-- **Forecasting tool** – Dark-mode page at `/forecast` that estimates orders, revenue, ad spend and ROAS using region reach, retailer tier, store count and cashback rates. You can select multiple regions to sum their reach.
+- **Forecasting tool** – The homepage provides a dark-mode forecasting form that estimates orders, revenue, ad spend and ROAS using region reach, retailer tier, store count and cashback rates. Multiple regions can be selected via checkboxes.

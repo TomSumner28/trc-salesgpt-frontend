@@ -27,9 +27,21 @@ button:hover {
 }
 
 .container {
-  max-width: 600px;
+  max-width: 650px;
   margin: 0 auto;
   padding: 40px 20px;
+}
+
+h1 {
+  text-align: center;
+  color: var(--brand);
+}
+
+.region-group {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 form.form label {
@@ -48,9 +60,6 @@ form.form select {
   color: white;
 }
 
-form.form select[multiple] {
-  height: 90px;
-}
 
 form.form label.checkbox {
   display: flex;
