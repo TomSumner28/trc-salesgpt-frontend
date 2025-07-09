@@ -106,3 +106,25 @@ form.form label.checkbox {
   margin-top: 0;
   color: var(--brand);
 }
+
+.reach-input {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.view-toggle {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.results table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.results th,
+.results td {
+  border: 1px solid #333;
+  padding: 8px;
+}

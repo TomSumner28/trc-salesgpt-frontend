@@ -1,19 +1,15 @@
 import { useState } from 'react';
 import Head from 'next/head';
 
-const REACH_BY_REGION = {
-  UK: 50000,
-  US: 120000,
-  EU: 80000,
-};
+const REGIONS = ['UK', 'US', 'EU'];
 
 const CONVERSION_BY_TIER = {
-  1: 0.05,
-  2: 0.04,
-  3: 0.03,
-  4: 0.025,
-  5: 0.02,
-  6: 0.015,
+  1: 0.001,
+  2: 0.0005,
+  3: 0.00025,
+  4: 0.000125,
+  5: 0.000085,
+  6: 0.00005,
 };
 
 export default function Forecast() {
@@ -24,32 +20,49 @@ export default function Forecast() {
   const [instore, setInstore] = useState(false);
   const [stores, setStores] = useState('');
   const [aov, setAov] = useState('');
+  const [reach, setReach] = useState({});
   const [cashbackExisting, setCashbackExisting] = useState('');
   const [cashbackNew, setCashbackNew] = useState('');
   const [results, setResults] = useState(null);
+  const [view, setView] = useState('global');
 
   const toggleRegion = (region) => {
-    setRegions((prev) =>
-      prev.includes(region)
-        ? prev.filter((r) => r !== region)
-        : [...prev, region]
-    );
+    setRegions((prev) => {
+      if (prev.includes(region)) {
+        const updated = prev.filter((r) => r !== region);
+        setReach((curr) => {
+          const copy = { ...curr };
+          delete copy[region];
+          return copy;
+        });
+        return updated;
+      }
+      setReach((curr) => ({ ...curr, [region]: '' }));
+      return [...prev, region];
+    });
   };
 
   const calculate = (e) => {
     e.preventDefault();
-    const reach = regions.reduce((acc, r) => acc + (REACH_BY_REGION[r] || 0), 0);
-    let conversion = CONVERSION_BY_TIER[tier] || 0;
 
     const storeCount = parseInt(stores, 10) || 0;
+    let conversion = CONVERSION_BY_TIER[tier] || 0;
     if (instore && storeCount > 0) {
       conversion += storeCount * 0.00001;
     }
 
-    let expectedOrders = reach * conversion;
     const aovNum = parseFloat(aov) || 0;
     const existingCb = parseFloat(cashbackExisting) || 0;
     const newCb = parseFloat(cashbackNew) || 0;
+
+    const perRegion = {};
+    let totalOrders = 0;
+    regions.forEach((r) => {
+      const regionReach = parseInt(reach[r], 10) || 0;
+      const orders = regionReach * conversion;
+      perRegion[r] = { orders };
+      totalOrders += orders;
+    });
 
     let existingOrders = 0;
     let newOrders = 0;
@@ -58,22 +71,67 @@ export default function Forecast() {
     const hasNew = newCb > 0;
 
     if (hasExisting && hasNew) {
-      existingOrders = expectedOrders * 0.6;
-      newOrders = expectedOrders * 0.4;
+      existingOrders = totalOrders * 0.6;
+      newOrders = totalOrders * 0.4;
     } else if (hasNew && !hasExisting) {
-      newOrders = expectedOrders * 0.4;
-      expectedOrders = newOrders;
+      newOrders = totalOrders * 0.4;
+      totalOrders = newOrders;
     } else {
-      existingOrders = expectedOrders;
+      existingOrders = totalOrders;
     }
 
-    const revenue = expectedOrders * aovNum;
+    const revenue = totalOrders * aovNum;
     const adSpend =
       existingOrders * aovNum * (existingCb / 100) +
       newOrders * aovNum * (newCb / 100);
     const roas = adSpend ? revenue / adSpend : 0;
 
-    setResults({ expectedOrders, revenue, adSpend, roas });
+    Object.keys(perRegion).forEach((r) => {
+      const orders = perRegion[r].orders;
+      let ex = 0;
+      let nw = 0;
+      if (hasExisting && hasNew) {
+        ex = orders * 0.6;
+        nw = orders * 0.4;
+      } else if (hasNew && !hasExisting) {
+        nw = orders * 0.4;
+      } else {
+        ex = orders;
+      }
+      const rev = orders * aovNum;
+      const spend =
+        ex * aovNum * (existingCb / 100) + nw * aovNum * (newCb / 100);
+      perRegion[r] = { orders, revenue: rev, adSpend: spend };
+    });
+
+    const monthly = Array.from({ length: 6 }).map(() => ({
+      orders: totalOrders / 6,
+      revenue: revenue / 6,
+      adSpend: adSpend / 6,
+    }));
+
+    const offerBreakdown =
+      hasExisting && hasNew
+        ? {
+            existing: {
+              orders: existingOrders,
+              revenue: existingOrders * aovNum,
+              adSpend: existingOrders * aovNum * (existingCb / 100),
+            },
+            new: {
+              orders: newOrders,
+              revenue: newOrders * aovNum,
+              adSpend: newOrders * aovNum * (newCb / 100),
+            },
+          }
+        : null;
+
+    setResults({
+      total: { orders: totalOrders, revenue, adSpend, roas },
+      perRegion,
+      monthly,
+      offerBreakdown,
+    });
   };
 
   return (
@@ -98,7 +156,7 @@ export default function Forecast() {
           </label>
           <fieldset className="region-group">
             <legend>Regions</legend>
-            {Object.keys(REACH_BY_REGION).map((r) => (
+            {REGIONS.map((r) => (
               <label key={r} className="checkbox">
                 <input
                   type="checkbox"
@@ -109,6 +167,18 @@ export default function Forecast() {
               </label>
             ))}
           </fieldset>
+          {regions.map((r) => (
+            <label key={`reach-${r}`} className="reach-input">
+              Reach {r}
+              <input
+                type="number"
+                value={reach[r] || ''}
+                onChange={(e) =>
+                  setReach((curr) => ({ ...curr, [r]: e.target.value }))
+                }
+              />
+            </label>
+          ))}
           <label>
             Tier
             <select value={tier} onChange={(e) => setTier(e.target.value)}>
@@ -175,10 +245,89 @@ export default function Forecast() {
         {results && (
           <div className="results">
             <h2>Results</h2>
-            <p>Expected Orders: {results.expectedOrders.toFixed(0)}</p>
-            <p>Revenue: £{results.revenue.toFixed(2)}</p>
-            <p>Ad Spend: £{results.adSpend.toFixed(2)}</p>
-            <p>ROAS: {results.roas.toFixed(2)}x</p>
+            <div className="view-toggle">
+              <select value={view} onChange={(e) => setView(e.target.value)}>
+                <option value="global">Global</option>
+                <option value="region">By Region</option>
+                {results.offerBreakdown && (
+                  <option value="offer">By Offer Type</option>
+                )}
+              </select>
+            </div>
+            {view === 'global' && (
+              <>
+                <p>Expected Orders: {results.total.orders.toFixed(0)}</p>
+                <p>Revenue: £{results.total.revenue.toFixed(2)}</p>
+                <p>Ad Spend: £{results.total.adSpend.toFixed(2)}</p>
+                <p>ROAS: {results.total.roas.toFixed(2)}x</p>
+              </>
+            )}
+            {view === 'region' && (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Region</th>
+                    <th>Orders</th>
+                    <th>Revenue</th>
+                    <th>Ad Spend</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(results.perRegion).map(([r, d]) => (
+                    <tr key={r}>
+                      <td>{r}</td>
+                      <td>{d.orders.toFixed(0)}</td>
+                      <td>£{d.revenue.toFixed(2)}</td>
+                      <td>£{d.adSpend.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {view === 'offer' && results.offerBreakdown && (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Orders</th>
+                    <th>Revenue</th>
+                    <th>Ad Spend</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(results.offerBreakdown).map(([t, d]) => (
+                    <tr key={t}>
+                      <td>{t}</td>
+                      <td>{d.orders.toFixed(0)}</td>
+                      <td>£{d.revenue.toFixed(2)}</td>
+                      <td>£{d.adSpend.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            <h3>Monthly Projection</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Orders</th>
+                  <th>Revenue</th>
+                  <th>Ad Spend</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.monthly.map((m, i) => (
+                  <tr key={i}>
+                    <td>{`Month ${i + 1}`}</td>
+                    <td>{m.orders.toFixed(0)}</td>
+                    <td>£{m.revenue.toFixed(2)}</td>
+                    <td>£{m.adSpend.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </main>
