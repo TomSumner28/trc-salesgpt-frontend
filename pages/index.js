@@ -167,22 +167,22 @@ export default function Forecast() {
         <p style={{ textAlign: 'center' }}>
           Enter campaign details below to estimate performance.
         </p>
-        <form onSubmit={calculate} className="form">
-          <label>
-            Retailer Name
-            <input
-              type="text"
-              value={retailer}
-              onChange={(e) => setRetailer(e.target.value)}
-              required
-            />
-          </label>
-          <fieldset className="region-group">
-            <legend>Regions</legend>
-            {REGIONS.map((r) => (
-              <label key={r} className="checkbox">
-                <input
-                  type="checkbox"
+          <form onSubmit={calculate} className="form">
+            <label className="full-width">
+              Retailer Name
+              <input
+                type="text"
+                value={retailer}
+                onChange={(e) => setRetailer(e.target.value)}
+                required
+              />
+            </label>
+            <fieldset className="region-group full-width">
+              <legend>Regions</legend>
+              {REGIONS.map((r) => (
+                <label key={r} className="checkbox">
+                  <input
+                    type="checkbox"
                   checked={regions.includes(r)}
                   onChange={() => toggleRegion(r)}
                 />
@@ -190,18 +190,18 @@ export default function Forecast() {
               </label>
             ))}
           </fieldset>
-          {regions.map((r) => (
-            <label key={`reach-${r}`} className="reach-input">
-              Reach {r}
-              <input
-                type="number"
-                value={reach[r] || ''}
-                onChange={(e) =>
-                  setReach((curr) => ({ ...curr, [r]: e.target.value }))
-                }
-              />
-            </label>
-          ))}
+            {regions.map((r) => (
+              <label key={`reach-${r}`} className="reach-input">
+                Reach {r}
+                <input
+                  type="number"
+                  value={reach[r] || ''}
+                  onChange={(e) =>
+                    setReach((curr) => ({ ...curr, [r]: e.target.value }))
+                  }
+                />
+              </label>
+            ))}
           <label>
             Tier
             <select value={tier} onChange={(e) => setTier(e.target.value)}>
@@ -212,22 +212,24 @@ export default function Forecast() {
               ))}
             </select>
           </label>
-          <label className="checkbox">
-            <input
-              type="checkbox"
-              checked={online}
-              onChange={(e) => setOnline(e.target.checked)}
-            />
-            Online
-          </label>
-          <label className="checkbox">
-            <input
-              type="checkbox"
-              checked={instore}
-              onChange={(e) => setInstore(e.target.checked)}
-            />
-            In-store
-          </label>
+            <div className="checkbox-row">
+              <label className="checkbox">
+                <input
+                  type="checkbox"
+                  checked={online}
+                  onChange={(e) => setOnline(e.target.checked)}
+                />
+                Online
+              </label>
+              <label className="checkbox">
+                <input
+                  type="checkbox"
+                  checked={instore}
+                  onChange={(e) => setInstore(e.target.checked)}
+                />
+                In-store
+              </label>
+            </div>
           {instore && (
             <label>
               Number of Stores
@@ -263,7 +265,7 @@ export default function Forecast() {
               onChange={(e) => setCashbackNew(e.target.value)}
             />
           </label>
-          <button type="submit">Calculate Forecast</button>
+          <button type="submit" className="full-width">Calculate Forecast</button>
         </form>
         {results && (
           <div className="results">
@@ -407,29 +409,33 @@ export default function Forecast() {
                   ...results.monthly.map((m) => m.adSpend)
                 );
                 const max = Math.max(revMax, spendMax);
-                const points = (data) =>
+                const pathFor = (data) =>
                   data
                     .map((v, idx) => {
                       const x = (idx / 5) * 600;
                       const y = 200 - (v / max) * 180 - 10;
-                      return `${x},${y}`;
+                      return `${idx === 0 ? 'M' : 'L'}${x},${y}`;
                     })
                     .join(' ');
-                const revPts = points(results.monthly.map((m) => m.revenue));
-                const spendPts = points(results.monthly.map((m) => m.adSpend));
+                const revPath = pathFor(results.monthly.map((m) => m.revenue));
+                const spendPath = pathFor(results.monthly.map((m) => m.adSpend));
                 return (
                   <>
-                    <polyline
+                    <path
+                      d={revPath}
                       fill="none"
                       stroke="var(--brand)"
                       strokeWidth="3"
-                      points={revPts}
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
                     />
-                    <polyline
+                    <path
+                      d={spendPath}
                       fill="none"
                       stroke="#888"
                       strokeWidth="3"
-                      points={spendPts}
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
                     />
                   </>
                 );

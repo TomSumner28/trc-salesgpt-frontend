@@ -8,4 +8,4 @@ This project contains a small Next.js frontend for the TRC SalesGPT demo.
 
 ## Features
 
-- **Forecasting tool** – The homepage provides a dark-mode forecasting form styled with TRC colours that estimates orders, revenue, ad spend and ROAS. Enter reach for each selected region, choose the retailer tier, online/instore options and cashback rates. Results include a monthly breakdown with a six‑month growth curve and a chart. Currency automatically switches to dollars when only the US region is selected.
+- **Forecasting tool** – The homepage provides a dark-mode forecasting form branded for The Reward Collection. Enter reach for each selected region, choose the retailer tier, online/instore options and cashback rates. Results include a six‑month growth curve, a MoM line chart and automatic currency switching when only the US region is selected.
