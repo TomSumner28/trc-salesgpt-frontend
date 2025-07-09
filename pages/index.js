@@ -4,7 +4,6 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, Legend, PieChart, Pie, Cell
 } from 'recharts';
-import * as XLSX from 'xlsx';
 
 export default function Home() {
   const [retailer, setRetailer] = useState('');
@@ -83,7 +82,8 @@ export default function Home() {
     setResults({monthlyData,totalRev,totalCost,avgCost:totalCost/6,isUSD,pieData});
   };
 
-  const exportExcel = () => {
+  const exportExcel = async () => {
+    const XLSX = await import('xlsx');
     const data = results.monthlyData.flatMap(m=>m.details.map(d=>({
       Month:m.name,Region:d.region,Segment:d.segment,Sales:d.sales,Revenue:d.revenue,Cost:d.cost,ROAS:d.roas
     })));

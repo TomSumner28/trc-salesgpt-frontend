@@ -11,6 +11,5 @@
     "react": "latest",
     "react-dom": "latest",
     "recharts": "latest",
-    "xlsx": "^0.18.5"
-  }
-}
+    "xlsx": "0.20.1"
+  }}
