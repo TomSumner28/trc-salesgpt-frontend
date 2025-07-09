@@ -37,6 +37,50 @@ export default function Forecast() {
   const [results, setResults] = useState(null);
   const [view, setView] = useState('global');
 
+  const downloadExcel = async () => {
+    if (!results) return;
+    const XLSX = await import(
+      'https://cdn.sheetjs.com/xlsx-0.20.1/package/xlsx.mjs'
+    );
+    const wb = XLSX.utils.book_new();
+    const summaryData = [
+      ['Metric', 'Value'],
+      ['Orders', Math.round(results.total.orders)],
+      ['Revenue', results.total.revenue],
+      ['Ad Spend', results.total.adSpend],
+      ['ROAS', results.total.roas],
+    ];
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, summarySheet, 'Campaign Summary');
+
+    const monthData = [
+      ['Month', 'Orders', 'Revenue', 'Ad Spend'],
+      ...results.monthly.map((m, i) => [
+        `Month ${i + 1}`,
+        Math.round(m.orders),
+        m.revenue,
+        m.adSpend,
+      ]),
+    ];
+    const totals = results.monthly.reduce(
+      (acc, m) => ({
+        orders: acc.orders + m.orders,
+        revenue: acc.revenue + m.revenue,
+        adSpend: acc.adSpend + m.adSpend,
+      }),
+      { orders: 0, revenue: 0, adSpend: 0 }
+    );
+    monthData.push([
+      'Total',
+      Math.round(totals.orders),
+      totals.revenue,
+      totals.adSpend,
+    ]);
+    const monthSheet = XLSX.utils.aoa_to_sheet(monthData);
+    XLSX.utils.book_append_sheet(wb, monthSheet, 'Month on Month');
+    XLSX.writeFile(wb, 'forecast.xlsx');
+  };
+
   const toggleRegion = (region) => {
     setRegions((prev) => {
       if (prev.includes(region)) {
@@ -160,10 +204,10 @@ export default function Forecast() {
   return (
     <>
       <Head>
-        <title>Forecasting GPT</title>
+        <title>The Reward Collection Forecasting Tool</title>
       </Head>
       <main className="container">
-        <h1>Forecasting GPT</h1>
+        <h1>The Reward Collection Forecasting Tool</h1>
         <p style={{ textAlign: 'center' }}>
           Enter campaign details below to estimate performance.
         </p>
@@ -396,6 +440,34 @@ export default function Forecast() {
                     </td>
                   </tr>
                 ))}
+                {(() => {
+                  const totals = results.monthly.reduce(
+                    (acc, m) => ({
+                      orders: acc.orders + m.orders,
+                      revenue: acc.revenue + m.revenue,
+                      adSpend: acc.adSpend + m.adSpend,
+                    }),
+                    { orders: 0, revenue: 0, adSpend: 0 }
+                  );
+                  return (
+                    <tr className="totals-row">
+                      <td>Total</td>
+                      <td>{formatNumber(Math.round(totals.orders))}</td>
+                      <td>
+                        {formatCurrency(
+                          totals.revenue,
+                          results.currency === 'USD'
+                        )}
+                      </td>
+                      <td>
+                        {formatCurrency(
+                          totals.adSpend,
+                          results.currency === 'USD'
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })()}
               </tbody>
             </table>
             <svg
@@ -441,6 +513,9 @@ export default function Forecast() {
                 );
               })()}
             </svg>
+            <button className="download-btn" onClick={downloadExcel}>
+              Download to Excel
+            </button>
           </div>
         )}
       </main>
