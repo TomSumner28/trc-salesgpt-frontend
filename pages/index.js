@@ -14,9 +14,6 @@ const CONVERSION_BY_TIER = {
 
 const MONTH_DELTAS = [0, 0.05, 0.07, -0.02, 0.06, 0.04];
 
-const CHART_WIDTH = 600;
-const CHART_HEIGHT = 200;
-const CHART_PADDING = 40;
 
 function formatNumber(n) {
   return n.toLocaleString();
@@ -41,7 +38,6 @@ export default function Forecast() {
   const [results, setResults] = useState(null);
   const [view, setView] = useState('global');
   const [theme, setTheme] = useState('dark');
-  const [hoverIdx, setHoverIdx] = useState(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -106,6 +102,7 @@ export default function Forecast() {
     const cashbackAmount =
       existingOrders * aovNum * (existingCb / 100) +
       newOrders * aovNum * (newCb / 100);
+    const netRevenue = revenue - cashbackAmount;
     const roas = cashbackAmount ? revenue / cashbackAmount : 0;
 
     Object.keys(perRegion).forEach((r) => {
@@ -123,7 +120,12 @@ export default function Forecast() {
       const rev = orders * aovNum;
       const cashbackAmount =
         ex * aovNum * (existingCb / 100) + nw * aovNum * (newCb / 100);
-      perRegion[r] = { orders, revenue: rev, cashback: cashbackAmount };
+      perRegion[r] = {
+        orders,
+        revenue: rev,
+        cashback: cashbackAmount,
+        netRevenue: rev - cashbackAmount,
+      };
     });
 
     const factors = [1];
@@ -138,7 +140,12 @@ export default function Forecast() {
       const monthRevenue = monthOrders * aovNum;
       const monthCashback =
         monthOrders * aovNum * ((existingCb * exRatio + newCb * nwRatio) / 100);
-      return { orders: monthOrders, revenue: monthRevenue, cashback: monthCashback };
+      return {
+        orders: monthOrders,
+        revenue: monthRevenue,
+        cashback: monthCashback,
+        netRevenue: monthRevenue - monthCashback,
+      };
     });
 
     const offerBreakdown =
@@ -148,11 +155,15 @@ export default function Forecast() {
               orders: existingOrders,
               revenue: existingOrders * aovNum,
               cashback: existingOrders * aovNum * (existingCb / 100),
+              netRevenue:
+                existingOrders * aovNum -
+                existingOrders * aovNum * (existingCb / 100),
             },
             new: {
               orders: newOrders,
               revenue: newOrders * aovNum,
               cashback: newOrders * aovNum * (newCb / 100),
+              netRevenue: newOrders * aovNum - newOrders * aovNum * (newCb / 100),
             },
           }
         : null;
@@ -160,7 +171,13 @@ export default function Forecast() {
     const isUSD = regions.length === 1 && regions[0] === 'US';
 
     setResults({
-      total: { orders: totalOrders, revenue, cashback: cashbackAmount, roas },
+      total: {
+        orders: totalOrders,
+        revenue,
+        cashback: cashbackAmount,
+        netRevenue,
+        roas,
+      },
       perRegion,
       monthly,
       offerBreakdown,
@@ -315,6 +332,13 @@ export default function Forecast() {
                     results.currency === 'USD'
                   )}
                 </p>
+                <p>
+                  Net Revenue:{' '}
+                  {formatCurrency(
+                    results.total.netRevenue,
+                    results.currency === 'USD'
+                  )}
+                </p>
                 <p>ROAS: {results.total.roas.toFixed(2)}x</p>
               </>
             )}
@@ -326,6 +350,7 @@ export default function Forecast() {
                     <th>Orders</th>
                     <th>Revenue</th>
                     <th>Total Cashback</th>
+                    <th>Net Revenue</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -345,6 +370,12 @@ export default function Forecast() {
                           results.currency === 'USD'
                         )}
                       </td>
+                      <td>
+                        {formatCurrency(
+                          d.netRevenue,
+                          results.currency === 'USD'
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -358,6 +389,7 @@ export default function Forecast() {
                     <th>Orders</th>
                     <th>Revenue</th>
                     <th>Total Cashback</th>
+                    <th>Net Revenue</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -374,6 +406,12 @@ export default function Forecast() {
                       <td>
                         {formatCurrency(
                           d.cashback,
+                          results.currency === 'USD'
+                        )}
+                      </td>
+                      <td>
+                        {formatCurrency(
+                          d.netRevenue,
                           results.currency === 'USD'
                         )}
                       </td>
@@ -425,98 +463,16 @@ export default function Forecast() {
                         results.monthly.map((m) => m.cashback),
                         (v) => formatCurrency(v, results.currency === 'USD')
                       )}
+                      {makeRow(
+                        'Net Revenue',
+                        results.monthly.map((m) => m.netRevenue),
+                        (v) => formatCurrency(v, results.currency === 'USD')
+                      )}
                     </>
                   );
                 })()}
               </tbody>
             </table>
-            <svg
-              viewBox={`0 0 ${CHART_WIDTH + CHART_PADDING + 20} ${CHART_HEIGHT + 40}`}
-              className="chart"
-              preserveAspectRatio="none"
-              onMouseMove={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = e.clientX - rect.left - CHART_PADDING;
-                const idx = Math.round((x / CHART_WIDTH) * (results.monthly.length - 1));
-                if (idx >= 0 && idx < results.monthly.length) {
-                  setHoverIdx(idx);
-                } else {
-                  setHoverIdx(null);
-                }
-              }}
-              onMouseLeave={() => setHoverIdx(null)}
-            >
-              {(() => {
-                const revMax = Math.max(...results.monthly.map((m) => m.revenue));
-                const cashbackMax = Math.max(...results.monthly.map((m) => m.cashback));
-                const aovCalc = results.total.orders > 0 ? results.total.revenue / results.total.orders : 0;
-                const orderMax = Math.max(...results.monthly.map((m) => m.orders * aovCalc));
-                const max = Math.max(revMax, cashbackMax, orderMax);
-                const pointsFor = (data) =>
-                  data.map((v, idx) => {
-                    const x = CHART_PADDING + (idx / (data.length - 1)) * CHART_WIDTH;
-                    const y = CHART_HEIGHT - (v / max) * (CHART_HEIGHT - 20) + 10;
-                    return { x, y };
-                  });
-                const revPts = pointsFor(results.monthly.map((m) => m.revenue));
-                const cashbackPts = pointsFor(results.monthly.map((m) => m.cashback));
-                const orderPts = pointsFor(results.monthly.map((m) => m.orders * aovCalc));
-                const pathFrom = (pts) => pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
-                const ticks = 4;
-                const pt = hoverIdx != null ? revPts[hoverIdx] : null;
-                return (
-                  <>
-                    <line x1={CHART_PADDING} y1={CHART_HEIGHT} x2={CHART_PADDING + CHART_WIDTH} y2={CHART_HEIGHT} stroke="#555" />
-                    <line x1={CHART_PADDING} y1={10} x2={CHART_PADDING} y2={CHART_HEIGHT} stroke="#555" />
-                    {Array.from({ length: ticks + 1 }, (_, i) => {
-                      const val = (max * i) / ticks;
-                      const y = CHART_HEIGHT - (val / max) * (CHART_HEIGHT - 20) + 10;
-                      return (
-                        <g key={i}>
-                          <line x1={CHART_PADDING - 4} y1={y} x2={CHART_PADDING} y2={y} stroke="#555" />
-                          <text x={0} y={y + 4} fontSize="10" fill="#aaa">
-                            {formatCurrency(val, results.currency === 'USD')}
-                          </text>
-                        </g>
-                      );
-                    })}
-                    {results.monthly.map((_, idx) => {
-                      const x = CHART_PADDING + (idx / (results.monthly.length - 1)) * CHART_WIDTH;
-                      return (
-                        <text key={idx} x={x} y={CHART_HEIGHT + 15} textAnchor="middle" fontSize="10" fill="#aaa">
-                          {`M${idx + 1}`}
-                        </text>
-                      );
-                    })}
-                    <path d={pathFrom(revPts)} fill="none" stroke="var(--brand)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
-                    <path d={pathFrom(cashbackPts)} fill="none" stroke="#888" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
-                    <path d={pathFrom(orderPts)} fill="none" stroke="#2aa4c9" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
-                    {hoverIdx != null && (
-                      <g>
-                        <line x1={pt.x} x2={pt.x} y1={10} y2={CHART_HEIGHT} stroke="#555" strokeDasharray="4" />
-                        <circle cx={revPts[hoverIdx].x} cy={revPts[hoverIdx].y} r="4" fill="var(--brand)" />
-                        <circle cx={cashbackPts[hoverIdx].x} cy={cashbackPts[hoverIdx].y} r="4" fill="#888" />
-                        <circle cx={orderPts[hoverIdx].x} cy={orderPts[hoverIdx].y} r="4" fill="#2aa4c9" />
-                        <text x={pt.x} y={20} textAnchor="middle" fontSize="10" fill="#aaa">
-                          {formatCurrency(results.monthly[hoverIdx].revenue, results.currency === 'USD')}
-                        </text>
-                        <text x={pt.x} y={32} textAnchor="middle" fontSize="10" fill="#aaa">
-                          {formatCurrency(results.monthly[hoverIdx].cashback, results.currency === 'USD')}
-                        </text>
-                        <text x={pt.x} y={44} textAnchor="middle" fontSize="10" fill="#aaa">
-                          {formatNumber(Math.round(results.monthly[hoverIdx].orders))} orders
-                        </text>
-                      </g>
-                    )}
-                  </>
-                );
-              })()}
-            </svg>
-            <div className="chart-legend">
-              <span><span className="line revenue"></span>Revenue</span>
-              <span><span className="line cashback"></span>Total Cashback</span>
-              <span><span className="line orders"></span>Sales</span>
-            </div>
           </div>
         )}
       </main>

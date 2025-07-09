@@ -171,39 +171,6 @@ form.form label.checkbox {
 }
 
 
-.chart {
-  width: 100%;
-  height: 200px;
-  margin-top: 20px;
-}
-
-.chart-legend {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 8px;
-  font-size: 0.9rem;
-}
-
-.chart-legend .line {
-  display: inline-block;
-  width: 20px;
-  height: 3px;
-  margin-right: 6px;
-  vertical-align: middle;
-}
-
-.chart-legend .revenue {
-  background: var(--brand);
-}
-
-.chart-legend .cashback {
-  background: #888;
-}
-
-.chart-legend .orders {
-  background: #2aa4c9;
-}
 
 .theme-switch {
   position: absolute;
