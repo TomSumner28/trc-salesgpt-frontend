@@ -4,8 +4,7 @@ Features:
 - Tactical Offer toggle (new & existing split)
 - 6-tier conversion logic
 - MoM & regional breakdown with segment
-- Excel export (client-side & API)- TRC-branded modern UI
-
+- TRC-branded modern UI with charts
 ## Setup
 
 1. Install dependencies:
@@ -16,5 +15,3 @@ Features:
    ```bash
    npm run build
    ```
-
-The project depends on [`xlsx`](https://www.npmjs.com/package/xlsx) version 0.20.1 for Excel export functionality.

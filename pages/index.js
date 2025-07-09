@@ -27,7 +27,6 @@ export default function Home() {
     '6': 0.00005
   };
   const allRegions = ['UK','US','EU','APAC'];
-  const allOffer = ['Online','In-Store'];
   const momMult = [1.00,1.03,1.05,1.04,1.09,1.11];
   const COLORS = ['#00BFFF','#007ACC','#005B99','#003F73','#001F3F','#00121A'];
 
@@ -50,9 +49,7 @@ export default function Home() {
         const reach=reachByRegion[region]||0;
         const baseSales=reach*conv;
         const baseRev=baseSales*aov;
-        // split logic
         if(tactical){
-          // both rates?
           if(newCashback>0){
             const existsSales=baseSales*0.6, newSales=baseSales*0.4;
             const existsRev=existsSales*aov, newRev=newSales*aov;
@@ -62,7 +59,6 @@ export default function Home() {
             mSales+=existsSales+newSales; mRev+=existsRev+newRev; mCost+=existsCost+newCost;
             regionCost[region]=(regionCost[region]||0)+existsCost+newCost;
           } else {
-            // new-only
             const sales=baseSales*0.4, rev=sales*aov, cost=rev*(newCashback/100);
             details.push({region,segment:'New-only',sales:Math.round(sales),revenue:rev,cost:cost,roas:cost?rev/cost:0});
             mSales+=sales; mRev+=rev; mCost+=cost;
@@ -82,16 +78,6 @@ export default function Home() {
     setResults({monthlyData,totalRev,totalCost,avgCost:totalCost/6,isUSD,pieData});
   };
 
-  const exportExcel = async () => {
-    const XLSX = await import('xlsx');
-    const data = results.monthlyData.flatMap(m=>m.details.map(d=>({
-      Month:m.name,Region:d.region,Segment:d.segment,Sales:d.sales,Revenue:d.revenue,Cost:d.cost,ROAS:d.roas
-    })));
-    const ws=XLSX.utils.json_to_sheet(data);
-    const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Forecast');
-    XLSX.writeFile(wb,'forecast.xlsx');
-  };
-
   return (
     <div style={{background:'#0a0a0a',color:'#fff',padding:'2rem',fontFamily:'Arial'}}>
       <Head><title>TRC Forecast GPT Tactical</title></Head>
@@ -102,7 +88,7 @@ export default function Home() {
           {Object.keys(tiers).map(t=><option key={t} value={t}>Tier {t}</option>)}
         </select>
         <label><input type="checkbox" onChange={()=>setTactical(!tactical)}/> Tactical Offer</label>
-        {tactical&&<input type="number" placeholder="New Cashback %" onChange={e=>setNewCashback(Number(e.target.value))} style={{padding:'0.5rem',borderRadius:'4px'}}/>}
+        {tactical && <input type="number" placeholder="New Cashback %" onChange={e=>setNewCashback(Number(e.target.value))} style={{padding:'0.5rem',borderRadius:'4px'}}/>}
       </div>
       <h2 style={{color:'#00BFFF',marginTop:'1rem'}}>Regions & Reach</h2>
       <div>{allRegions.map(r=><label key={r} style={{marginRight:'1rem'}}><input type="checkbox" onChange={()=>setRegions(prev=>prev.includes(r)?prev.filter(x=>x!==r):[...prev,r])}/>{r}</label>)}</div>
@@ -110,8 +96,7 @@ export default function Home() {
       <label>AOV: <input type="number" onChange={e=>setAov(Number(e.target.value))} style={{padding:'0.5rem'}}/></label>
       <label style={{marginLeft:'1rem'}}>Cashback: <input type="range" min="0" max="100" onChange={e=>setCashback(Number(e.target.value))}/>{cashback}%</label>
       <button onClick={handleSubmit} style={{marginTop:'1rem',padding:'0.75rem 1.5rem',background:'#00BFFF',border:'none',borderRadius:'6px',fontWeight:'bold'}}>Generate</button>
-      {results&&<>
-        <button onClick={exportExcel} style={{margin:'1rem 0',padding:'0.5rem 1rem',background:'#003F73',border:'none',borderRadius:'6px'}}>Download to Excel</button>
+      {results && <>
         <h2>Campaign Summary</h2>
         <p>Total Revenue: {formatCurrency(results.totalRev,results.isUSD)}</p>
         <p>Total Cost: {formatCurrency(results.totalCost,results.isUSD)}</p>
@@ -128,7 +113,10 @@ export default function Home() {
         <h2>Charts</h2>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={results.monthlyData}>
-            <XAxis dataKey="name" stroke="#ccc"/><YAxis stroke="#ccc"/><Tooltip/><Legend/>
+            <XAxis dataKey="name" stroke="#ccc"/>
+            <YAxis stroke="#ccc"/>
+            <Tooltip />
+            <Legend />
             <Line type="monotone" dataKey="monthRev" stroke="#00BFFF" name="Revenue"/>
             <Line type="monotone" dataKey="monthCost" stroke="#FF8C00" name="Cost"/>
           </LineChart>
@@ -139,10 +127,9 @@ export default function Home() {
             <Pie data={results.pieData} dataKey="value" nameKey="region" cx="50%" cy="50%" outerRadius={100} fill="#00BFFF" label>
               {results.pieData.map((entry,index)=><Cell key={index} fill={COLORS[index%COLORS.length]}/>)}
             </Pie>
-            <Tooltip/>
+            <Tooltip />
           </PieChart>
         </ResponsiveContainer>
-      </>}
+      </>
     </div>
-  );
-}
+  );}
