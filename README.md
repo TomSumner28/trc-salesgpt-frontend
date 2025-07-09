@@ -8,5 +8,5 @@ This project contains a small Next.js frontend for the TRC SalesGPT demo.
 
 ## Features
 
-- **Forecasting tool** – The homepage hosts **The Reward Collection Forecasting Tool**. Select multiple regions and choose tier, online/instore options and cashback rates. Reach for each region auto-fills from publisher data. Results include a six‑month growth curve with tables showing revenue, total cashback, **net revenue** and sales. A light/dark mode toggle is available from the top right.
+- **Forecasting tool** – The homepage hosts **The Reward Collection Forecasting Tool**. Select multiple regions and choose tier, online/instore options and cashback rates. Reach for each region auto-fills from publisher data. Results include a six‑month growth curve with tables showing revenue, total cashback, **net revenue** and sales. A light/dark mode toggle is available from the top right. A **Download PDF** button lets you save the current forecast view with branding.
 - **Publisher manager** – Use the Publishers link to view, add or edit publisher entries that feed the automated reach numbers.

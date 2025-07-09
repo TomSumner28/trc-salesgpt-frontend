@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { usePublishers, computeReach } from '../lib/usePublishers';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const REGIONS = ['UK', 'US', 'EU'];
 
@@ -41,6 +43,7 @@ export default function Forecast() {
   const [results, setResults] = useState(null);
   const [view, setView] = useState('global');
   const [theme, setTheme] = useState('dark');
+  const resultsRef = useRef(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -291,6 +294,26 @@ export default function Forecast() {
     });
   };
 
+  const downloadPdf = async () => {
+    if (!resultsRef.current) return;
+    const canvas = await html2canvas(resultsRef.current);
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let position = 0;
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    let heightLeft = imgHeight - pdf.internal.pageSize.getHeight();
+    while (heightLeft > 0) {
+      position -= pdf.internal.pageSize.getHeight();
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdf.internal.pageSize.getHeight();
+    }
+    pdf.save('forecast.pdf');
+  };
+
   return (
     <>
       <Head>
@@ -416,8 +439,8 @@ export default function Forecast() {
           <button type="submit" className="full-width">Calculate Forecast</button>
         </form>
         {results && (
-          <div className="results">
-            <h2>Results</h2>
+          <div className="results" ref={resultsRef}>
+            <h2>Forecast</h2>
             <div className="view-toggle">
               <select value={view} onChange={(e) => setView(e.target.value)}>
                 <option value="global">Global</option>
@@ -427,6 +450,7 @@ export default function Forecast() {
                 )}
                 <option value="all">View All</option>
               </select>
+              <button type="button" onClick={downloadPdf}>Download PDF</button>
             </div>
             {view === 'global' && <GlobalView />}
             {view === 'region' && <RegionView />}
