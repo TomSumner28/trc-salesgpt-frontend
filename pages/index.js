@@ -23,9 +23,27 @@ function formatNumber(n) {
   return n.toLocaleString();
 }
 
-function formatCurrency(n, usd) {
-  const symbol = usd ? '$' : '£';
-  return symbol + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const REGION_CURRENCIES = {
+  UK: 'GBP',
+  US: 'USD',
+  EU: 'EUR',
+};
+
+const CURRENCY_SYMBOLS = {
+  GBP: '£',
+  USD: '$',
+  EUR: '€',
+};
+
+function formatCurrency(n, code) {
+  const symbol = CURRENCY_SYMBOLS[code] || '';
+  return (
+    symbol +
+    n.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
 }
 
 export default function Forecast() {
@@ -68,28 +86,19 @@ export default function Forecast() {
         <tr>
           <th>Revenue</th>
           <td>
-            {formatCurrency(
-              results.total.revenue,
-              results.currency === 'USD'
-            )}
+            {formatCurrency(results.total.revenue, results.currency)}
           </td>
         </tr>
         <tr>
           <th>Total Cashback</th>
           <td>
-            {formatCurrency(
-              results.total.cashback,
-              results.currency === 'USD'
-            )}
+            {formatCurrency(results.total.cashback, results.currency)}
           </td>
         </tr>
         <tr>
           <th>Net Revenue</th>
           <td>
-            {formatCurrency(
-              results.total.netRevenue,
-              results.currency === 'USD'
-            )}
+            {formatCurrency(results.total.netRevenue, results.currency)}
           </td>
         </tr>
         <tr>
@@ -114,11 +123,13 @@ export default function Forecast() {
       <tbody>
         {Object.entries(results.perRegion).map(([r, d]) => (
           <tr key={r}>
-            <td>{r}</td>
+            <td>
+              {r} ({CURRENCY_SYMBOLS[REGION_CURRENCIES[r]]})
+            </td>
             <td>{formatNumber(Math.round(d.orders))}</td>
-            <td>{formatCurrency(d.revenue, results.currency === 'USD')}</td>
-            <td>{formatCurrency(d.cashback, results.currency === 'USD')}</td>
-            <td>{formatCurrency(d.netRevenue, results.currency === 'USD')}</td>
+            <td>{formatCurrency(d.revenue, REGION_CURRENCIES[r])}</td>
+            <td>{formatCurrency(d.cashback, REGION_CURRENCIES[r])}</td>
+            <td>{formatCurrency(d.netRevenue, REGION_CURRENCIES[r])}</td>
           </tr>
         ))}
       </tbody>
@@ -142,9 +153,9 @@ export default function Forecast() {
             <tr key={t}>
               <td>{t}</td>
               <td>{formatNumber(Math.round(d.orders))}</td>
-              <td>{formatCurrency(d.revenue, results.currency === 'USD')}</td>
-              <td>{formatCurrency(d.cashback, results.currency === 'USD')}</td>
-              <td>{formatCurrency(d.netRevenue, results.currency === 'USD')}</td>
+              <td>{formatCurrency(d.revenue, results.currency)}</td>
+              <td>{formatCurrency(d.cashback, results.currency)}</td>
+              <td>{formatCurrency(d.netRevenue, results.currency)}</td>
             </tr>
           ))}
         </tbody>
@@ -277,7 +288,15 @@ export default function Forecast() {
           }
         : null;
 
-    const isUSD = regions.length === 1 && regions[0] === 'US';
+    let bestRegion = regions[0];
+    let maxOrders = perRegion[bestRegion]?.orders || 0;
+    regions.forEach((r) => {
+      if ((perRegion[r]?.orders || 0) > maxOrders) {
+        bestRegion = r;
+        maxOrders = perRegion[r].orders;
+      }
+    });
+    const currency = REGION_CURRENCIES[bestRegion] || 'GBP';
 
     setResults({
       total: {
@@ -290,7 +309,7 @@ export default function Forecast() {
       perRegion,
       monthly,
       offerBreakdown,
-      currency: isUSD ? 'USD' : 'GBP',
+      currency,
     });
   };
 
@@ -510,17 +529,17 @@ export default function Forecast() {
                       {makeRow(
                         'Revenue',
                         results.monthly.map((m) => m.revenue),
-                        (v) => formatCurrency(v, results.currency === 'USD')
+                        (v) => formatCurrency(v, results.currency)
                       )}
                       {makeRow(
                         'Total Cashback',
                         results.monthly.map((m) => m.cashback),
-                        (v) => formatCurrency(v, results.currency === 'USD')
+                        (v) => formatCurrency(v, results.currency)
                       )}
                       {makeRow(
                         'Net Revenue',
                         results.monthly.map((m) => m.netRevenue),
-                        (v) => formatCurrency(v, results.currency === 'USD')
+                        (v) => formatCurrency(v, results.currency)
                       )}
                     </>
                   );
