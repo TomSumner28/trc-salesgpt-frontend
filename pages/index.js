@@ -14,6 +14,10 @@ const CONVERSION_BY_TIER = {
 
 const MONTH_DELTAS = [0, 0.05, 0.07, -0.02, 0.06, 0.04];
 
+const CHART_WIDTH = 600;
+const CHART_HEIGHT = 200;
+const CHART_PADDING = 40;
+
 function formatNumber(n) {
   return n.toLocaleString();
 }
@@ -428,7 +432,7 @@ export default function Forecast() {
               </tbody>
             </table>
             <svg
-              viewBox="0 0 600 200"
+              viewBox={`0 0 ${CHART_WIDTH + CHART_PADDING + 20} ${CHART_HEIGHT + 40}`}
               className="chart"
               preserveAspectRatio="none"
             >
@@ -448,8 +452,10 @@ export default function Forecast() {
                 const pathFor = (data) =>
                   data
                     .map((v, idx) => {
-                      const x = (idx / 5) * 600;
-                      const y = 200 - (v / max) * 180 - 10;
+                      const x =
+                        CHART_PADDING + (idx / (data.length - 1)) * CHART_WIDTH;
+                      const y =
+                        CHART_HEIGHT - (v / max) * (CHART_HEIGHT - 20) + 10;
                       return `${idx === 0 ? 'M' : 'L'}${x},${y}`;
                     })
                     .join(' ');
@@ -458,8 +464,58 @@ export default function Forecast() {
                 const orderPath = pathFor(
                   results.monthly.map((m) => m.orders * aovCalc)
                 );
+                const ticks = 4;
                 return (
                   <>
+                    <line
+                      x1={CHART_PADDING}
+                      y1={CHART_HEIGHT}
+                      x2={CHART_PADDING + CHART_WIDTH}
+                      y2={CHART_HEIGHT}
+                      stroke="#555"
+                    />
+                    <line
+                      x1={CHART_PADDING}
+                      y1={10}
+                      x2={CHART_PADDING}
+                      y2={CHART_HEIGHT}
+                      stroke="#555"
+                    />
+                    {Array.from({ length: ticks + 1 }, (_, i) => {
+                      const val = (max * i) / ticks;
+                      const y =
+                        CHART_HEIGHT - (val / max) * (CHART_HEIGHT - 20) + 10;
+                      return (
+                        <g key={i}>
+                          <line
+                            x1={CHART_PADDING - 4}
+                            y1={y}
+                            x2={CHART_PADDING}
+                            y2={y}
+                            stroke="#555"
+                          />
+                          <text x={0} y={y + 4} fontSize="10" fill="#aaa">
+                            {formatCurrency(val, results.currency === 'USD')}
+                          </text>
+                        </g>
+                      );
+                    })}
+                    {results.monthly.map((_, idx) => {
+                      const x =
+                        CHART_PADDING + (idx / (results.monthly.length - 1)) * CHART_WIDTH;
+                      return (
+                        <text
+                          key={idx}
+                          x={x}
+                          y={CHART_HEIGHT + 15}
+                          textAnchor="middle"
+                          fontSize="10"
+                          fill="#aaa"
+                        >
+                          {`M${idx + 1}`}
+                        </text>
+                      );
+                    })}
                     <path
                       d={revPath}
                       fill="none"
@@ -488,6 +544,11 @@ export default function Forecast() {
                 );
               })()}
             </svg>
+            <div className="chart-legend">
+              <span><span className="line revenue"></span>Revenue</span>
+              <span><span className="line spend"></span>Ad Spend</span>
+              <span><span className="line orders"></span>Sales</span>
+            </div>
           </div>
         )}
       </main>
