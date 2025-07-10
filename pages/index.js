@@ -7,6 +7,34 @@ import jsPDF from 'jspdf';
 
 const REGIONS = ['UK', 'US', 'EU'];
 const SALES_REPS = ['james', 'lucy', 'rebecca', 'ryan', 'preena', 'shamas', 'shaun'];
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+const MONTH_CHANGES = {
+  January: -0.2,
+  February: 0.05,
+  March: 0.05,
+  April: 0.07,
+  May: -0.02,
+  June: 0.03,
+  July: 0.06,
+  August: 0.08,
+  September: 0.04,
+  October: 0.05,
+  November: 0.1,
+  December: 0.1,
+};
 
 // Conversion rates by tier. Reduced by 50% from the previous values so
 // forecasts are more conservative.
@@ -64,6 +92,7 @@ export default function Forecast() {
   const [cashbackNew, setCashbackNew] = useState('');
   const [results, setResults] = useState(null);
   const [view, setView] = useState('global');
+  const [startMonth, setStartMonth] = useState(MONTHS[0]);
   const [theme, setTheme] = useState('light');
   const resultsRef = useRef(null);
 
@@ -313,9 +342,20 @@ export default function Forecast() {
       };
     });
 
-    const factors = [1];
-    for (let i = 1; i < MONTH_DELTAS.length; i++) {
-      factors[i] = factors[i - 1] * (1 + MONTH_DELTAS[i]);
+    const startIndex = MONTHS.indexOf(startMonth);
+    const monthLabels = [];
+    const deltas = [];
+    for (let i = 0; i < 6; i++) {
+      const idx = (startIndex + i) % MONTHS.length;
+      const m = MONTHS[idx];
+      monthLabels.push(m);
+      deltas.push(MONTH_CHANGES[m] || 0);
+    }
+
+    const factors = [];
+    factors[0] = 1 + deltas[0];
+    for (let i = 1; i < 6; i++) {
+      factors[i] = factors[i - 1] * (1 + deltas[i]);
     }
     const sumFactors = factors.reduce((a, b) => a + b, 0);
     const monthly = factors.map((f) => {
@@ -373,6 +413,7 @@ export default function Forecast() {
       },
       perRegion,
       monthly,
+      monthLabels,
       offerBreakdown,
       channelBreakdown,
       currency,
@@ -440,6 +481,16 @@ export default function Forecast() {
                 onChange={(e) => setRetailer(e.target.value)}
                 required
               />
+            </label>
+            <label className="full-width">
+              Starting Month
+              <select value={startMonth} onChange={(e) => setStartMonth(e.target.value)}>
+                {MONTHS.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
             </label>
             <fieldset className="region-group full-width">
               <legend>Regions</legend>
@@ -586,8 +637,8 @@ export default function Forecast() {
               <thead>
                 <tr>
                   <th></th>
-                  {results.monthly.map((_, i) => (
-                    <th key={i}>{`Month ${i + 1}`}</th>
+                  {results.monthLabels.map((m, i) => (
+                    <th key={i}>{m}</th>
                   ))}
                   <th>Total</th>
                 </tr>
