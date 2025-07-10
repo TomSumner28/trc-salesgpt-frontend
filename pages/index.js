@@ -527,7 +527,7 @@ export default function Forecast() {
             <h2>{retailer ? `${retailer} 6-Month Forecast` : '6-Month Forecast'}</h2>
             <div className="view-toggle">
               <select value={view} onChange={(e) => setView(e.target.value)}>
-                <option value="global">Global</option>
+                <option value="global">High Level Campaign Metrics</option>
                 <option value="region">By Region</option>
                 {results.offerBreakdown && (
                   <option value="offer">By Offer Type</option>
@@ -546,7 +546,7 @@ export default function Forecast() {
             {view === 'all' && (
               <div className="side-by-side">
                 <div>
-                  <h3>Global</h3>
+                  <h3>High Level Campaign Metrics</h3>
                   <GlobalView />
                 </div>
                 <div>
