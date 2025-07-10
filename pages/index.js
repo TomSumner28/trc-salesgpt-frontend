@@ -70,13 +70,15 @@ export default function Forecast() {
   }, [theme]);
 
   useEffect(() => {
-    const includeNew = parseFloat(cashbackNew) > 0;
+    const newOnly =
+      parseFloat(cashbackNew) > 0 && (!cashbackExisting || parseFloat(cashbackExisting) === 0);
     const obj = {};
     regions.forEach((r) => {
-      obj[r] = computeReach(publishers, r, includeNew);
+      const baseReach = computeReach(publishers, r, newOnly);
+      obj[r] = Math.round(baseReach * 0.5);
     });
     setReach(obj);
-  }, [regions, cashbackNew, publishers]);
+  }, [regions, cashbackExisting, cashbackNew, publishers]);
 
   const GlobalView = () => (
     <table className="summary-table">
