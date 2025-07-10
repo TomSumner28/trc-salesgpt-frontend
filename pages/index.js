@@ -634,13 +634,19 @@ export default function Forecast() {
               </tbody>
             </table>
             <p className="disclaimer">
-              All forecasts are based on historic sales data and can vary based on a
-              number of variables. These forecasts should not be used as an exact
-              budget but more as a gauge of the success of a campaign with The
-              Reward Collection. We're looking forward to advancing our
-              conversations. Thanks,{' '}
-              {rep.charAt(0).toUpperCase() + rep.slice(1)} ({rep}
-              @thewardcollection.com)
+              <strong>Disclaimer:</strong>
+              <br />
+              The projections outlined in this forecast are based on historical sales data and are influenced by a range of dynamic variables. While they offer a directional view of potential performance, they should not be considered fixed budgets or guaranteed outcomes. The Reward Collection provides these insights to help guide strategic planning and campaign alignment.
+              <br />
+              <br />
+              We look forward to continuing our discussions and exploring the opportunities ahead.
+              <br />
+              <br />
+              Warm regards,
+              <br />
+              {rep.charAt(0).toUpperCase() + rep.slice(1)}
+              <br />
+              {rep}@thewardcollection.com
             </p>
             </div>
           </div>
