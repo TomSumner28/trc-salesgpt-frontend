@@ -167,6 +167,33 @@ export default function Forecast() {
     )
   );
 
+  const ChannelView = () => (
+    results.channelBreakdown && (
+      <table className="monthly-table">
+        <thead>
+          <tr>
+            <th>Channel</th>
+            <th>Orders</th>
+            <th>Revenue</th>
+            <th>Total Cashback</th>
+            <th>Net Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(results.channelBreakdown).map(([c, d]) => (
+            <tr key={c}>
+              <td>{c}</td>
+              <td>{formatNumber(Math.round(d.orders))}</td>
+              <td>{formatCurrency(d.revenue, results.currency)}</td>
+              <td>{formatCurrency(d.cashback, results.currency)}</td>
+              <td>{formatCurrency(d.netRevenue, results.currency)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )
+  );
+
 
   const toggleRegion = (region) => {
     setRegions((prev) => {
@@ -188,11 +215,9 @@ export default function Forecast() {
     e.preventDefault();
 
     const storeCount = parseInt(stores, 10) || 0;
-    let conversion = CONVERSION_BY_TIER[tier] || 0;
-    if (instore && storeCount > 0) {
-      // Uplift conversion by 0.000001 per store
-      conversion += storeCount * 0.000001;
-    }
+    const baseConversion = CONVERSION_BY_TIER[tier] || 0;
+    const storeUplift = instore && storeCount > 0 ? storeCount * 0.000001 : 0;
+    const conversion = baseConversion + storeUplift;
 
     const aovNum = parseFloat(aov) || 0;
     const existingCb = parseFloat(cashbackExisting) || 0;
@@ -200,11 +225,25 @@ export default function Forecast() {
 
     const perRegion = {};
     let totalOrders = 0;
+    let onlineOrdersTotal = 0;
+    let instoreOrdersTotal = 0;
     regions.forEach((r) => {
       const regionReach = parseInt(reach[r], 10) || 0;
-      const orders = regionReach * conversion;
+      let onlineOrders = 0;
+      let instoreOrders = 0;
+      if (online && instore) {
+        onlineOrders = regionReach * baseConversion;
+        instoreOrders = regionReach * storeUplift;
+      } else if (instore && !online) {
+        instoreOrders = regionReach * conversion;
+      } else {
+        onlineOrders = regionReach * baseConversion;
+      }
+      const orders = onlineOrders + instoreOrders;
       perRegion[r] = { orders };
       totalOrders += orders;
+      onlineOrdersTotal += onlineOrders;
+      instoreOrdersTotal += instoreOrders;
     });
 
     let existingOrders = 0;
@@ -212,6 +251,20 @@ export default function Forecast() {
 
     const hasExisting = existingCb > 0;
     const hasNew = newCb > 0;
+
+    const computeAmounts = (orders) => {
+      const exRatio = hasExisting && hasNew ? 0.6 : hasNew && !hasExisting ? 0 : 1;
+      const nwRatio = hasExisting && hasNew ? 0.4 : hasNew && !hasExisting ? 1 : 0;
+      const revenue = orders * aovNum;
+      const cashback =
+        orders * aovNum * ((existingCb * exRatio + newCb * nwRatio) / 100);
+      return {
+        orders,
+        revenue,
+        cashback,
+        netRevenue: revenue - cashback,
+      };
+    };
 
     if (hasExisting && hasNew) {
       existingOrders = totalOrders * 0.6;
@@ -223,11 +276,16 @@ export default function Forecast() {
       existingOrders = totalOrders;
     }
 
-    const revenue = totalOrders * aovNum;
-    const cashbackAmount =
-      existingOrders * aovNum * (existingCb / 100) +
-      newOrders * aovNum * (newCb / 100);
-    const netRevenue = revenue - cashbackAmount;
+    const channelBreakdown =
+      online && instore
+        ? {
+            online: computeAmounts(onlineOrdersTotal),
+            instore: computeAmounts(instoreOrdersTotal),
+          }
+        : null;
+
+    const { revenue, cashback: cashbackAmount, netRevenue } =
+      computeAmounts(totalOrders);
     const roas = cashbackAmount ? revenue / cashbackAmount : 0;
 
     Object.keys(perRegion).forEach((r) => {
@@ -314,6 +372,7 @@ export default function Forecast() {
       perRegion,
       monthly,
       offerBreakdown,
+      channelBreakdown,
       currency,
     });
   };
@@ -473,6 +532,9 @@ export default function Forecast() {
                 {results.offerBreakdown && (
                   <option value="offer">By Offer Type</option>
                 )}
+                {results.channelBreakdown && (
+                  <option value="channel">By Channel</option>
+                )}
                 <option value="all">View All</option>
               </select>
               <button type="button" onClick={downloadPdf}>Download PDF</button>
@@ -480,6 +542,7 @@ export default function Forecast() {
             {view === 'global' && <GlobalView />}
             {view === 'region' && <RegionView />}
             {view === 'offer' && <OfferView />}
+            {view === 'channel' && <ChannelView />}
             {view === 'all' && (
               <div className="side-by-side">
                 <div>
@@ -494,6 +557,12 @@ export default function Forecast() {
                   <div>
                     <h3>By Offer Type</h3>
                     <OfferView />
+                  </div>
+                )}
+                {results.channelBreakdown && (
+                  <div>
+                    <h3>By Channel</h3>
+                    <ChannelView />
                   </div>
                 )}
               </div>
