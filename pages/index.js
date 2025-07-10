@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
 const REGIONS = ['UK', 'US', 'EU'];
+const SALES_REPS = ['james', 'lucy', 'rebecca', 'ryan', 'preena', 'shamas', 'shaun'];
 
 // Conversion rates by tier. Reduced by 50% from the previous values so
 // forecasts are more conservative.
@@ -50,6 +51,7 @@ function formatCurrency(n, code) {
 
 export default function Forecast() {
   const [retailer, setRetailer] = useState('');
+  const [rep, setRep] = useState(SALES_REPS[0]);
   const [regions, setRegions] = useState([]);
   const [tier, setTier] = useState('1');
   const [online, setOnline] = useState(false);
@@ -421,6 +423,16 @@ export default function Forecast() {
         </p>
           <form onSubmit={calculate} className="form">
             <label className="full-width">
+              Sales Rep
+              <select value={rep} onChange={(e) => setRep(e.target.value)}>
+                {SALES_REPS.map((r) => (
+                  <option key={r} value={r}>
+                    {r.charAt(0).toUpperCase() + r.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="full-width">
               Retailer Name
               <input
                 type="text"
@@ -523,8 +535,7 @@ export default function Forecast() {
           <button type="submit" className="full-width">Calculate Forecast</button>
         </form>
         {results && (
-          <div className="results" ref={resultsRef}>
-            <h2>{retailer ? `${retailer} 6-Month Forecast` : '6-Month Forecast'}</h2>
+          <div className="results">
             <div className="view-toggle">
               <select value={view} onChange={(e) => setView(e.target.value)}>
                 <option value="global">High Level Campaign Metrics</option>
@@ -539,6 +550,8 @@ export default function Forecast() {
               </select>
               <button type="button" onClick={downloadPdf}>Download PDF</button>
             </div>
+            <div ref={resultsRef}>
+            <h2>{retailer ? `${retailer} 6-Month Forecast` : '6-Month Forecast'}</h2>
             {view === 'global' && <GlobalView />}
             {view === 'region' && <RegionView />}
             {view === 'offer' && <OfferView />}
@@ -620,6 +633,16 @@ export default function Forecast() {
                 })()}
               </tbody>
             </table>
+            <p className="disclaimer">
+              All forecasts are based on historic sales data and can vary based on a
+              number of variables. These forecasts should not be used as an exact
+              budget but more as a gauge of the success of a campaign with The
+              Reward Collection. We're looking forward to advancing our
+              conversations. Thanks,{' '}
+              {rep.charAt(0).toUpperCase() + rep.slice(1)} ({rep}
+              @thewardcollection.com)
+            </p>
+            </div>
           </div>
         )}
       </main>

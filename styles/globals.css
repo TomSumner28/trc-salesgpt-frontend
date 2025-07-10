@@ -228,3 +228,9 @@ form.form label.checkbox {
   padding: 8px;
   border: 1px solid var(--border-color);
 }
+
+.disclaimer {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
