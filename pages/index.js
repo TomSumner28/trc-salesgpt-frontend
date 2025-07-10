@@ -190,8 +190,8 @@ export default function Forecast() {
     const storeCount = parseInt(stores, 10) || 0;
     let conversion = CONVERSION_BY_TIER[tier] || 0;
     if (instore && storeCount > 0) {
-      // Reduce the uplift per store to 0.0000001 for more conservative results
-      conversion += storeCount * 0.0000001;
+      // Uplift conversion by 0.000001 per store
+      conversion += storeCount * 0.000001;
     }
 
     const aovNum = parseFloat(aov) || 0;
