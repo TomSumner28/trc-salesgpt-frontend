@@ -7,13 +7,15 @@ import jsPDF from 'jspdf';
 
 const REGIONS = ['UK', 'US', 'EU'];
 
+// Conversion rates by tier. Reduced by 50% from the previous values so
+// forecasts are more conservative.
 const CONVERSION_BY_TIER = {
-  1: 0.001,
-  2: 0.0005,
-  3: 0.00025,
-  4: 0.000125,
-  5: 0.000085,
-  6: 0.00005,
+  1: 0.0005,
+  2: 0.00025,
+  3: 0.000125,
+  4: 0.0000625,
+  5: 0.0000425,
+  6: 0.000025,
 };
 
 const MONTH_DELTAS = [0, 0.05, 0.07, -0.02, 0.06, 0.04];
@@ -186,7 +188,8 @@ export default function Forecast() {
     const storeCount = parseInt(stores, 10) || 0;
     let conversion = CONVERSION_BY_TIER[tier] || 0;
     if (instore && storeCount > 0) {
-      conversion += storeCount * 0.00001;
+      // Reduce uplift per store by 60% from the previous 0.00001 value
+      conversion += storeCount * 0.000004;
     }
 
     const aovNum = parseFloat(aov) || 0;
