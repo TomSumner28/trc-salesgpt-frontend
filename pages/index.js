@@ -77,6 +77,13 @@ function formatCurrency(n, code) {
   );
 }
 
+function computeMonthlyShares(baseShares, weights) {
+  const adjusted = baseShares.map((s, i) => s * (weights[i] || 1));
+  const sum = adjusted.reduce((a, b) => a + b, 0) || 1;
+  return adjusted.map((s) => s / sum);
+}
+
+
 export default function Forecast() {
   const [retailer, setRetailer] = useState('');
   const [rep, setRep] = useState(SALES_REPS[0]);
@@ -94,6 +101,8 @@ export default function Forecast() {
   const [view, setView] = useState('global');
   const [startMonth, setStartMonth] = useState(MONTHS[0]);
   const [theme, setTheme] = useState('light');
+  const [baseShares, setBaseShares] = useState([]);
+  const [weights, setWeights] = useState(Array(6).fill(1));
   const resultsRef = useRef(null);
 
   useEffect(() => {
@@ -110,6 +119,31 @@ export default function Forecast() {
     });
     setReach(obj);
   }, [regions, cashbackExisting, cashbackNew, publishers]);
+
+  useEffect(() => {
+    if (!results || baseShares.length === 0) return;
+    const aovNum = parseFloat(aov) || 0;
+    const existingCb = parseFloat(cashbackExisting) || 0;
+    const newCb = parseFloat(cashbackNew) || 0;
+    const hasExisting = existingCb > 0;
+    const hasNew = newCb > 0;
+    const exRatio = hasExisting && hasNew ? 0.6 : hasNew && !hasExisting ? 0 : 1;
+    const nwRatio = hasExisting && hasNew ? 0.4 : hasNew && !hasExisting ? 1 : 0;
+    const shares = computeMonthlyShares(baseShares, weights);
+    const monthly = shares.map((s) => {
+      const monthOrders = results.total.orders * s;
+      const monthRevenue = monthOrders * aovNum;
+      const monthCashback =
+        monthOrders * aovNum * ((existingCb * exRatio + newCb * nwRatio) / 100);
+      return {
+        orders: monthOrders,
+        revenue: monthRevenue,
+        cashback: monthCashback,
+        netRevenue: monthRevenue - monthCashback,
+      };
+    });
+    setResults((prev) => ({ ...prev, monthly }));
+  }, [weights]);
 
   const GlobalView = () => (
     <table className="summary-table">
@@ -242,6 +276,14 @@ export default function Forecast() {
     });
   };
 
+  const updateWeight = (index, value) => {
+    setWeights((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  };
+
   const calculate = (e) => {
     e.preventDefault();
 
@@ -358,8 +400,12 @@ export default function Forecast() {
       factors[i] = factors[i - 1] * (1 + deltas[i]);
     }
     const sumFactors = factors.reduce((a, b) => a + b, 0);
-    const monthly = factors.map((f) => {
-      const monthOrders = (totalOrders * f) / sumFactors;
+    const shares = factors.map((f) => f / sumFactors);
+    setBaseShares(shares);
+    setWeights(Array(6).fill(1));
+    const adjShares = computeMonthlyShares(shares, Array(6).fill(1));
+    const monthly = adjShares.map((s) => {
+      const monthOrders = totalOrders * s;
       const exRatio = hasExisting && hasNew ? 0.6 : hasNew && !hasExisting ? 0 : 1;
       const nwRatio = hasExisting && hasNew ? 0.4 : hasNew && !hasExisting ? 1 : 0;
       const monthRevenue = monthOrders * aovNum;
@@ -641,6 +687,22 @@ export default function Forecast() {
                     <th key={i}>{m}</th>
                   ))}
                   <th>Total</th>
+                </tr>
+                <tr className="slider-row">
+                  <th>Adjust</th>
+                  {weights.map((w, i) => (
+                    <th key={i}>
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="1.5"
+                        step="0.01"
+                        value={w}
+                        onChange={(e) => updateWeight(i, parseFloat(e.target.value))}
+                      />
+                    </th>
+                  ))}
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
