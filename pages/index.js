@@ -171,6 +171,10 @@ export default function Forecast() {
           </td>
         </tr>
         <tr>
+          <th>Increase in Basket Spend</th>
+          <td>28%</td>
+        </tr>
+        <tr>
           <th>ROAS</th>
           <td>{results.total.roas.toFixed(2)}x</td>
         </tr>
@@ -468,7 +472,11 @@ export default function Forecast() {
 
   const downloadPdf = async () => {
     if (!resultsRef.current) return;
+    const sliderRow = resultsRef.current.querySelector('.slider-row');
+    const prevDisplay = sliderRow ? sliderRow.style.display : '';
+    if (sliderRow) sliderRow.style.display = 'none';
     const canvas = await html2canvas(resultsRef.current);
+    if (sliderRow) sliderRow.style.display = prevDisplay;
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
