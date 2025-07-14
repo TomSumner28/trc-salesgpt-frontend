@@ -503,6 +503,9 @@ export default function Forecast() {
       <main className="container">
         <div className="top-bar">
           <Link href="/publishers">Publishers</Link>
+          <Link href="/publisher-forecast" style={{ marginLeft: '20px' }}>
+            Publisher Forecasts
+          </Link>
           <div className="theme-switch">
             <button
               type="button"

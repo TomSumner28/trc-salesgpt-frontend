@@ -61,9 +61,15 @@ export default function PublisherAdmin() {
         <title>Publisher Data</title>
       </Head>
       <main className="container">
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Link href="/">Back</Link>
-          <button type="button" onClick={restoreDefaults}>Restore Defaults</button>
+        <div className="top-bar">
+          <Link href="/">Forecasting</Link>
+          <Link href="/publishers" style={{ marginLeft: '20px' }}>Publishers</Link>
+          <Link href="/publisher-forecast" style={{ marginLeft: '20px' }}>
+            Publisher Forecasts
+          </Link>
+          <button type="button" onClick={restoreDefaults} style={{ marginLeft: 'auto' }}>
+            Restore Defaults
+          </button>
         </div>
         <h1>Publishers</h1>
         <table className="monthly-table">

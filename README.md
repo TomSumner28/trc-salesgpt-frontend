@@ -12,3 +12,4 @@ This project contains a small Next.js frontend for the TRC SalesGPT demo.
 - Adjust month-by-month totals using sliders beneath each month header. Moving a slider up or down redistributes spend across the remaining months so the six-month total stays the same.
 - High level metrics include a fixed **28% increase in basket spend** row alongside orders, revenue, cashback, net revenue and ROAS.
 - **Publisher manager** – Use the Publishers link to view, add or edit publisher entries that feed the automated reach numbers.
+- **Publisher forecasts** – Use the Publisher Forecasts page to enter real transaction and revenue figures from partners and generate a 3‑ or 6‑month forecast in any currency.
