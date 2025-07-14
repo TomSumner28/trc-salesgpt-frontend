@@ -51,6 +51,8 @@ export default function PublisherForecast() {
   const [forecastLength,setForecastLength] = useState('6');
   const [startMonth,setStartMonth] = useState(MONTHS[0]);
   const [mode,setMode] = useState('always');
+  const [online,setOnline] = useState(false);
+  const [instore,setInstore] = useState(false);
   const [allTx,setAllTx] = useState('');
   const [allRevenue,setAllRevenue] = useState('');
   const [allCashback,setAllCashback] = useState('');
@@ -96,6 +98,7 @@ export default function PublisherForecast() {
     let revenue=0;
     let cashback=0;
     let offerBreakdown=null;
+    let cashbackSplit=null;
 
     if(mode==='always'){
       orders = parseInt(allTx,10)||0;
@@ -118,6 +121,7 @@ export default function PublisherForecast() {
         existing:{orders:exOrders,revenue:exRev,cashback:exCb,netRevenue:exRev-exCb},
         new:{orders:nwOrders,revenue:nwRev,cashback:nwCb,netRevenue:nwRev-nwCb}
       };
+      cashbackSplit={existing:exCb,new:nwCb};
     }
     const netRevenue = revenue - cashback;
     const roas = cashback? revenue/cashback : 0;
@@ -138,11 +142,24 @@ export default function PublisherForecast() {
     const shares=factors.map(f=>f/sumFactors);
     setBaseShares(shares); setWeights(Array(length).fill(1));
     const monthly=shares.map(s=>({orders:orders*s,revenue:revenue*s,cashback:cashback*s,netRevenue:revenue*s-cashback*s}));
+    let channelBreakdown=null;
+    if(online && instore){
+      channelBreakdown={
+        online:{orders:orders/2,revenue:revenue/2,cashback:cashback/2,netRevenue:(netRevenue)/2},
+        instore:{orders:orders/2,revenue:revenue/2,cashback:cashback/2,netRevenue:(netRevenue)/2}
+      };
+    }else if(online){
+      channelBreakdown={online:{orders,revenue,cashback,netRevenue}};
+    }else if(instore){
+      channelBreakdown={instore:{orders,revenue,cashback,netRevenue}};
+    }
     setResults({
       total:{orders,revenue,cashback,netRevenue,roas,aov},
       monthLabels,
       monthly,
       offerBreakdown,
+      channelBreakdown,
+      cashbackSplit,
       manager,
       currency,
       publisher
@@ -181,11 +198,71 @@ export default function PublisherForecast() {
         <tr><th>Transaction Count</th><td>{formatNumber(Math.round(results.total.orders))}</td></tr>
         <tr><th>Revenue</th><td>{formatCurrency(results.total.revenue,currency)}</td></tr>
         <tr><th>Total Cashback</th><td>{formatCurrency(results.total.cashback,currency)}</td></tr>
+        {results.cashbackSplit && (
+          <>
+            <tr><th>Total Cashback Existing</th><td>{formatCurrency(results.cashbackSplit.existing,currency)}</td></tr>
+            <tr><th>Total Cashback New</th><td>{formatCurrency(results.cashbackSplit.new,currency)}</td></tr>
+          </>
+        )}
         <tr><th>Net Revenue</th><td>{formatCurrency(results.total.netRevenue,currency)}</td></tr>
         <tr><th>Average Order Value</th><td>{formatCurrency(results.total.aov,currency)}</td></tr>
         <tr><th>ROAS</th><td>{results.total.roas.toFixed(2)}x</td></tr>
       </tbody>
     </table>
+  );
+
+  const OfferView = () => (
+    results.offerBreakdown && (
+      <table className="monthly-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Orders</th>
+            <th>Revenue</th>
+            <th>Total Cashback</th>
+            <th>Net Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(results.offerBreakdown).map(([t,d])=> (
+            <tr key={t}>
+              <td>{t}</td>
+              <td>{formatNumber(Math.round(d.orders))}</td>
+              <td>{formatCurrency(d.revenue,currency)}</td>
+              <td>{formatCurrency(d.cashback,currency)}</td>
+              <td>{formatCurrency(d.netRevenue,currency)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )
+  );
+
+  const ChannelView = () => (
+    results.channelBreakdown && (
+      <table className="monthly-table">
+        <thead>
+          <tr>
+            <th>Channel</th>
+            <th>Orders</th>
+            <th>Revenue</th>
+            <th>Total Cashback</th>
+            <th>Net Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(results.channelBreakdown).map(([c,d]) => (
+            <tr key={c}>
+              <td>{c}</td>
+              <td>{formatNumber(Math.round(d.orders))}</td>
+              <td>{formatCurrency(d.revenue,currency)}</td>
+              <td>{formatCurrency(d.cashback,currency)}</td>
+              <td>{formatCurrency(d.netRevenue,currency)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )
   );
 
   return (
@@ -266,16 +343,24 @@ export default function PublisherForecast() {
               <label className="full-width">New Customer Revenue
                 <input type="number" value={newRevenue} onChange={e=>setNewRevenue(e.target.value)} />
               </label>
-              <label className="full-width">New Cashback %
-                <input type="number" value={newCashback} onChange={e=>setNewCashback(e.target.value)} />
-              </label>
-            </>
-          )}
-          <div className="checkbox-row full-width">
-            <label className="checkbox">
-              <input type="radio" name="mode" value="always" checked={mode==='always'} onChange={e=>setMode(e.target.value)} /> Always-on
-            </label>
-            <label className="checkbox">
+          <label className="full-width">New Cashback %
+            <input type="number" value={newCashback} onChange={e=>setNewCashback(e.target.value)} />
+          </label>
+        </>
+      )}
+        <div className="checkbox-row full-width">
+          <label className="checkbox">
+            <input type="checkbox" checked={online} onChange={e=>setOnline(e.target.checked)} /> Online
+          </label>
+          <label className="checkbox">
+            <input type="checkbox" checked={instore} onChange={e=>setInstore(e.target.checked)} /> In-store
+          </label>
+        </div>
+        <div className="checkbox-row full-width">
+          <label className="checkbox">
+            <input type="radio" name="mode" value="always" checked={mode==='always'} onChange={e=>setMode(e.target.value)} /> Always-on
+          </label>
+          <label className="checkbox">
               <input type="radio" name="mode" value="tactical" checked={mode==='tactical'} onChange={e=>setMode(e.target.value)} /> Tactical
             </label>
           </div>
@@ -286,13 +371,36 @@ export default function PublisherForecast() {
             <div className="view-toggle">
               <select value={view} onChange={e=>setView(e.target.value)}>
                 <option value="global">High Level Campaign Metrics</option>
+                {results.offerBreakdown && <option value="offer">By Offer Type</option>}
+                {results.channelBreakdown && <option value="channel">By Channel</option>}
                 <option value="all">View All</option>
               </select>
               <button type="button" onClick={downloadPdf}>Download PDF</button>
             </div>
             <h2>{retailer ? `${retailer} Forecast` : 'Forecast'}</h2>
             {view==='global' && <GlobalView />}
-            {view==='all' && <GlobalView />}
+            {view==='offer' && <OfferView />}
+            {view==='channel' && <ChannelView />}
+            {view==='all' && (
+              <div className="side-by-side">
+                <div>
+                  <h3>High Level Campaign Metrics</h3>
+                  <GlobalView />
+                </div>
+                {results.offerBreakdown && (
+                  <div>
+                    <h3>By Offer Type</h3>
+                    <OfferView />
+                  </div>
+                )}
+                {results.channelBreakdown && (
+                  <div>
+                    <h3>By Channel</h3>
+                    <ChannelView />
+                  </div>
+                )}
+              </div>
+            )}
             <h3>Monthly Projection</h3>
             <table className="monthly-table">
               <thead>
