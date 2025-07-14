@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { usePublishers, computeReach } from '../lib/usePublishers';
 import { useSavedForecasts } from '../lib/useSavedForecasts';
 import html2canvas from 'html2canvas';
@@ -105,7 +106,29 @@ export default function Forecast() {
   const [baseShares, setBaseShares] = useState([]);
   const [weights, setWeights] = useState(Array(6).fill(1));
   const resultsRef = useRef(null);
-  const [, addSavedForecast] = useSavedForecasts();
+  const [forecasts, addSavedForecast] = useSavedForecasts();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!router.query.edit || forecasts.length === 0) return;
+    const f = forecasts.find((fc) => fc.id === Number(router.query.edit));
+    if (f && f.inputs) {
+      const inp = f.inputs;
+      setRetailer(inp.retailer || '');
+      setRep(inp.rep || SALES_REPS[0]);
+      setRegions(inp.regions || []);
+      setTier(String(inp.tier || '1'));
+      setOnline(!!inp.online);
+      setInstore(!!inp.instore);
+      setStores(inp.stores || '');
+      setAov(inp.aov || '');
+      setCashbackExisting(inp.cashbackExisting || '');
+      setCashbackNew(inp.cashbackNew || '');
+      setStartMonth(inp.startMonth || MONTHS[0]);
+      setReach(inp.reach || {});
+      if (f.results) setResults(f.results);
+    }
+  }, [router.query.edit, forecasts]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -536,6 +559,20 @@ export default function Forecast() {
       type: 'forecast',
       retailer,
       rep,
+      inputs: {
+        retailer,
+        rep,
+        regions,
+        tier,
+        online,
+        instore,
+        stores,
+        aov,
+        cashbackExisting,
+        cashbackNew,
+        startMonth,
+        reach,
+      },
       results,
     });
     alert('Forecast saved');

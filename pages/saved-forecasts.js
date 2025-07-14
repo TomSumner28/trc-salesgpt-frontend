@@ -35,7 +35,11 @@ export default function SavedForecasts() {
             <tbody>
               {forecasts.map((f) => (
                 <tr key={f.id}>
-                  <td>{f.retailer || f.publisher || 'Forecast'}</td>
+                  <td>
+                    <Link href={`/saved-forecasts/${f.id}`}>
+                      {f.retailer || f.publisher || 'Forecast'}
+                    </Link>
+                  </td>
                   <td>{new Date(f.savedAt).toLocaleString()}</td>
                   <td>
                     <button type="button" onClick={() => removeForecast(f.id)}>

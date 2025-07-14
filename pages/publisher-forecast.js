@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useSavedForecasts } from '../lib/useSavedForecasts';
@@ -69,9 +70,38 @@ export default function PublisherForecast() {
   const [baseShares,setBaseShares] = useState([]);
   const [weights,setWeights] = useState([]);
   const resultsRef = useRef(null);
-  const [, addSavedForecast] = useSavedForecasts();
+  const [forecasts, addSavedForecast] = useSavedForecasts();
+  const router = useRouter();
 
   useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
+
+  useEffect(() => {
+    if (!router.query.edit || forecasts.length === 0) return;
+    const f = forecasts.find((fc) => fc.id === Number(router.query.edit));
+    if (f && f.inputs) {
+      const inp = f.inputs;
+      setManager(inp.manager || MANAGERS[0]);
+      setPublisher(inp.publisher || '');
+      setRetailer(inp.retailer || '');
+      setCurrency(inp.currency || 'GBP');
+      setForecastLength(inp.forecastLength || '6');
+      setStartMonth(inp.startMonth || MONTHS[0]);
+      setMode(inp.mode || 'always');
+      setInstore(!!inp.instore);
+      setInstoreTx(inp.instoreTx || '');
+      setInstoreRevenue(inp.instoreRevenue || '');
+      setAllTx(inp.allTx || '');
+      setAllRevenue(inp.allRevenue || '');
+      setAllCashback(inp.allCashback || '');
+      setExistingTx(inp.existingTx || '');
+      setExistingRevenue(inp.existingRevenue || '');
+      setExistingCashback(inp.existingCashback || '');
+      setNewTx(inp.newTx || '');
+      setNewRevenue(inp.newRevenue || '');
+      setNewCashback(inp.newCashback || '');
+      if (f.results) setResults(f.results);
+    }
+  }, [router.query.edit, forecasts]);
 
   useEffect(()=>{
     if(!results || baseShares.length===0) return;
@@ -192,16 +222,31 @@ export default function PublisherForecast() {
   };
 
   const downloadPdf = async () => {
-    if(!resultsRef.current) return;
-    const table = resultsRef.current.cloneNode(true);
-    table.querySelectorAll('.view-toggle').forEach(el=>el.style.display='none');
-    const canvas = await html2canvas(table);
-    const img = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({ orientation:'portrait', unit:'px', format:'a4' });
+    if (!resultsRef.current) return;
+    const viewToggle = resultsRef.current.querySelector('.view-toggle');
+    const sliderRow = resultsRef.current.querySelector('.slider-row');
+    const prevView = viewToggle ? viewToggle.style.display : '';
+    const prevSlider = sliderRow ? sliderRow.style.display : '';
+    if (viewToggle) viewToggle.style.display = 'none';
+    if (sliderRow) sliderRow.style.display = 'none';
+    const canvas = await html2canvas(resultsRef.current);
+    if (viewToggle) viewToggle.style.display = prevView;
+    if (sliderRow) sliderRow.style.display = prevSlider;
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = (canvas.height * pageWidth) / canvas.width;
-    pdf.addImage(img,'PNG',0,0,pageWidth,pageHeight);
-    pdf.save(`${retailer||'forecast'}-publisher-forecast.pdf`);
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let position = 0;
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    let heightLeft = imgHeight - pdf.internal.pageSize.getHeight();
+    while (heightLeft > 0) {
+      position -= pdf.internal.pageSize.getHeight();
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdf.internal.pageSize.getHeight();
+    }
+    pdf.save(`${retailer || 'forecast'}-publisher-forecast.pdf`);
   };
 
   const saveForecast = () => {
@@ -211,6 +256,27 @@ export default function PublisherForecast() {
       retailer,
       publisher,
       manager,
+      inputs: {
+        manager,
+        publisher,
+        retailer,
+        currency,
+        forecastLength,
+        startMonth,
+        mode,
+        instore,
+        instoreTx,
+        instoreRevenue,
+        allTx,
+        allRevenue,
+        allCashback,
+        existingTx,
+        existingRevenue,
+        existingCashback,
+        newTx,
+        newRevenue,
+        newCashback,
+      },
       results,
     });
     alert('Forecast saved');
