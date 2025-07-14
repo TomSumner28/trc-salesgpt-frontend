@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { usePublishers, computeReach } from '../lib/usePublishers';
+import { useSavedForecasts } from '../lib/useSavedForecasts';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -104,6 +105,7 @@ export default function Forecast() {
   const [baseShares, setBaseShares] = useState([]);
   const [weights, setWeights] = useState(Array(6).fill(1));
   const resultsRef = useRef(null);
+  const [, addSavedForecast] = useSavedForecasts();
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -473,10 +475,14 @@ export default function Forecast() {
   const downloadPdf = async () => {
     if (!resultsRef.current) return;
     const sliderRow = resultsRef.current.querySelector('.slider-row');
-    const prevDisplay = sliderRow ? sliderRow.style.display : '';
+    const viewToggle = resultsRef.current.querySelector('.view-toggle');
+    const prevSlider = sliderRow ? sliderRow.style.display : '';
+    const prevView = viewToggle ? viewToggle.style.display : '';
     if (sliderRow) sliderRow.style.display = 'none';
+    if (viewToggle) viewToggle.style.display = 'none';
     const canvas = await html2canvas(resultsRef.current);
-    if (sliderRow) sliderRow.style.display = prevDisplay;
+    if (sliderRow) sliderRow.style.display = prevSlider;
+    if (viewToggle) viewToggle.style.display = prevView;
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -495,6 +501,17 @@ export default function Forecast() {
     pdf.save(fileName);
   };
 
+  const saveForecast = () => {
+    if (!results) return;
+    addSavedForecast({
+      type: 'forecast',
+      retailer,
+      rep,
+      results,
+    });
+    alert('Forecast saved');
+  };
+
   return (
     <>
       <Head>
@@ -505,6 +522,9 @@ export default function Forecast() {
           <Link href="/publishers">Publishers</Link>
           <Link href="/publisher-forecast" style={{ marginLeft: '20px' }}>
             Publisher Forecasts
+          </Link>
+          <Link href="/saved-forecasts" style={{ marginLeft: '20px' }}>
+            Saved Forecasts
           </Link>
           <div className="theme-switch">
             <button
@@ -772,6 +792,7 @@ export default function Forecast() {
               <br />
               {rep}@thewardcollection.com
             </p>
+            <button type="button" onClick={saveForecast}>Save Forecast</button>
             </div>
           </div>
         )}

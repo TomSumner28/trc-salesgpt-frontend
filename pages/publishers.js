@@ -64,9 +64,8 @@ export default function PublisherAdmin() {
         <div className="top-bar">
           <Link href="/">Forecasting</Link>
           <Link href="/publishers" style={{ marginLeft: '20px' }}>Publishers</Link>
-          <Link href="/publisher-forecast" style={{ marginLeft: '20px' }}>
-            Publisher Forecasts
-          </Link>
+          <Link href="/publisher-forecast" style={{ marginLeft: '20px' }}>Publisher Forecasts</Link>
+          <Link href="/saved-forecasts" style={{ marginLeft: '20px' }}>Saved Forecasts</Link>
           <button type="button" onClick={restoreDefaults} style={{ marginLeft: 'auto' }}>
             Restore Defaults
           </button>

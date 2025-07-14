@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { useSavedForecasts } from '../lib/useSavedForecasts';
 
 const MANAGERS = ['tayla', 'laura'];
 const MONTHS = [
@@ -65,6 +66,7 @@ export default function PublisherForecast() {
   const [baseShares,setBaseShares] = useState([]);
   const [weights,setWeights] = useState([]);
   const resultsRef = useRef(null);
+  const [, addSavedForecast] = useSavedForecasts();
 
   useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
 
@@ -160,11 +162,23 @@ export default function PublisherForecast() {
     pdf.save(`${retailer||'forecast'}-publisher-forecast.pdf`);
   };
 
+  const saveForecast = () => {
+    if (!results) return;
+    addSavedForecast({
+      type: 'publisher',
+      retailer,
+      publisher,
+      manager,
+      results,
+    });
+    alert('Forecast saved');
+  };
+
   const GlobalView = () => (
     <table className="summary-table">
       <tbody>
         <tr><th>Publisher</th><td>{publisher}</td></tr>
-        <tr><th>Transactions</th><td>{formatNumber(Math.round(results.total.orders))}</td></tr>
+        <tr><th>Transaction Count</th><td>{formatNumber(Math.round(results.total.orders))}</td></tr>
         <tr><th>Revenue</th><td>{formatCurrency(results.total.revenue,currency)}</td></tr>
         <tr><th>Total Cashback</th><td>{formatCurrency(results.total.cashback,currency)}</td></tr>
         <tr><th>Net Revenue</th><td>{formatCurrency(results.total.netRevenue,currency)}</td></tr>
@@ -182,6 +196,7 @@ export default function PublisherForecast() {
           <Link href="/">Forecasting</Link>
           <Link href="/publishers" style={{ marginLeft:'20px' }}>Publishers</Link>
           <Link href="/publisher-forecast" style={{ marginLeft:'20px' }}>Publisher Forecasts</Link>
+          <Link href="/saved-forecasts" style={{ marginLeft:'20px' }}>Saved Forecasts</Link>
           <div className="theme-switch">
             <button type="button" onClick={()=>setTheme(theme==='dark'?'light':'dark')}>
               {theme==='dark'?'Light Mode':'Dark Mode'}
@@ -224,19 +239,19 @@ export default function PublisherForecast() {
 
           {mode==='always' ? (
             <>
-              <label className="full-width">All Transactions
+              <label className="full-width">Transaction Count
                 <input type="number" value={allTx} onChange={e=>setAllTx(e.target.value)} />
               </label>
-              <label className="full-width">All Transactions Revenue
+              <label className="full-width">Transaction Revenue
                 <input type="number" value={allRevenue} onChange={e=>setAllRevenue(e.target.value)} />
               </label>
-              <label className="full-width">All Transactions Cashback %
+              <label className="full-width">Cashback %
                 <input type="number" value={allCashback} onChange={e=>setAllCashback(e.target.value)} />
               </label>
             </>
           ) : (
             <>
-              <label className="full-width">Existing Transactions
+              <label className="full-width">Existing Transaction Count
                 <input type="number" value={existingTx} onChange={e=>setExistingTx(e.target.value)} />
               </label>
               <label className="full-width">Existing Customer Revenue
@@ -245,7 +260,7 @@ export default function PublisherForecast() {
               <label className="full-width">Existing Cashback %
                 <input type="number" value={existingCashback} onChange={e=>setExistingCashback(e.target.value)} />
               </label>
-              <label className="full-width">New Transactions
+              <label className="full-width">New Transaction Count
                 <input type="number" value={newTx} onChange={e=>setNewTx(e.target.value)} />
               </label>
               <label className="full-width">New Customer Revenue
@@ -297,7 +312,7 @@ export default function PublisherForecast() {
                   const makeRow=(label,arr,fmt)=>{const tot=arr.reduce((a,b)=>a+b,0);return (<tr><td>{label}</td>{arr.map((v,i)=>(<td key={i}>{fmt(v)}</td>))}<td>{fmt(tot)}</td></tr>);};
                   return (
                     <>
-                      {makeRow('Transactions',results.monthly.map(m=>m.orders),v=>formatNumber(Math.round(v)))}
+                      {makeRow('Transaction Count',results.monthly.map(m=>m.orders),v=>formatNumber(Math.round(v)))}
                       {makeRow('Revenue',results.monthly.map(m=>m.revenue),v=>formatCurrency(v,currency))}
                       {makeRow('Total Cashback',results.monthly.map(m=>m.cashback),v=>formatCurrency(v,currency))}
                       {makeRow('Net Revenue',results.monthly.map(m=>m.netRevenue),v=>formatCurrency(v,currency))}
@@ -313,6 +328,7 @@ export default function PublisherForecast() {
               {manager.charAt(0).toUpperCase()+manager.slice(1)}<br />
               {manager}@thewardcollection.com
             </p>
+            <button type="button" onClick={saveForecast}>Save Forecast</button>
           </div>
         )}
       </main>
