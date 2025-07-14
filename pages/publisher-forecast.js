@@ -248,19 +248,23 @@ export default function PublisherForecast() {
     const sliderRow = resultsRef.current.querySelector('.slider-row');
     const saveBtn = resultsRef.current.querySelector('.save-btn');
     const trcSection = resultsRef.current.querySelector('.trc-section');
+    const trcBtn = resultsRef.current.querySelector('.trc-toggle-btn');
     const prevView = viewToggle ? viewToggle.style.display : '';
     const prevSlider = sliderRow ? sliderRow.style.display : '';
     const prevSave = saveBtn ? saveBtn.style.display : '';
     const prevTrc = trcSection ? trcSection.style.display : '';
+    const prevTrcBtn = trcBtn ? trcBtn.style.display : '';
     if (viewToggle) viewToggle.style.display = 'none';
     if (sliderRow) sliderRow.style.display = 'none';
     if (saveBtn) saveBtn.style.display = 'none';
     if (trcSection) trcSection.style.display = 'none';
+    if (trcBtn) trcBtn.style.display = 'none';
     const canvas = await html2canvas(resultsRef.current);
     if (viewToggle) viewToggle.style.display = prevView;
     if (sliderRow) sliderRow.style.display = prevSlider;
     if (saveBtn) saveBtn.style.display = prevSave;
     if (trcSection) trcSection.style.display = prevTrc;
+    if (trcBtn) trcBtn.style.display = prevTrcBtn;
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -580,7 +584,7 @@ export default function PublisherForecast() {
                 })()}
               </tbody>
             </table>
-            <button type="button" onClick={()=>setShowTrc(!showTrc)} className="full-width">
+            <button type="button" onClick={()=>setShowTrc(!showTrc)} className="full-width trc-toggle-btn">
               {showTrc ? 'Hide' : 'Show'} The Reward Collection Revenue Projections
             </button>
             {showTrc && (

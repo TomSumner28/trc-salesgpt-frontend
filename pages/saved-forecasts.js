@@ -27,15 +27,15 @@ export default function SavedForecasts() {
             Saved Forecasts
           </Link>
           <div className="theme-switch">
-            <button type="button" onClick={() => setTheme(theme==='dark'?'light':'dark')}>
-              {theme==='dark'?'Light Mode':'Dark Mode'}
-            </button>
             <input
               type="text"
               placeholder="Search..."
               value={query}
               onChange={e=>setQuery(e.target.value)}
             />
+            <button type="button" onClick={() => setTheme(theme==='dark'?'light':'dark')}>
+              {theme==='dark'?'Light Mode':'Dark Mode'}
+            </button>
           </div>
         </div>
         <h1>Saved Forecasts</h1>
