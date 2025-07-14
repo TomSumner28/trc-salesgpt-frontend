@@ -51,8 +51,9 @@ export default function PublisherForecast() {
   const [forecastLength,setForecastLength] = useState('6');
   const [startMonth,setStartMonth] = useState(MONTHS[0]);
   const [mode,setMode] = useState('always');
-  const [online,setOnline] = useState(false);
   const [instore,setInstore] = useState(false);
+  const [instoreTx,setInstoreTx] = useState('');
+  const [instoreRevenue,setInstoreRevenue] = useState('');
   const [allTx,setAllTx] = useState('');
   const [allRevenue,setAllRevenue] = useState('');
   const [allCashback,setAllCashback] = useState('');
@@ -97,14 +98,24 @@ export default function PublisherForecast() {
     let orders=0;
     let revenue=0;
     let cashback=0;
+    let onlineOrders=0, onlineRevenue=0, onlineCashback=0;
+    let instOrders=0, instRevenue=0, instCashback=0;
     let offerBreakdown=null;
     let cashbackSplit=null;
 
     if(mode==='always'){
-      orders = parseInt(allTx,10)||0;
-      revenue = parseFloat(allRevenue)||0;
+      onlineOrders = parseInt(allTx,10)||0;
+      onlineRevenue = parseFloat(allRevenue)||0;
       const cbPct = parseFloat(allCashback)||0;
-      cashback = revenue * (cbPct/100);
+      onlineCashback = onlineRevenue * (cbPct/100);
+      if(instore){
+        instOrders = parseInt(instoreTx,10)||0;
+        instRevenue = parseFloat(instoreRevenue)||0;
+        instCashback = instRevenue * (cbPct/100);
+      }
+      orders = onlineOrders + instOrders;
+      revenue = onlineRevenue + instRevenue;
+      cashback = onlineCashback + instCashback;
     }else{
       const exOrders = parseInt(existingTx,10)||0;
       const nwOrders = parseInt(newTx,10)||0;
@@ -114,9 +125,18 @@ export default function PublisherForecast() {
       const nwPct = parseFloat(newCashback)||0;
       const exCb = exRev * (exPct/100);
       const nwCb = nwRev * (nwPct/100);
-      orders = exOrders + nwOrders;
-      revenue = exRev + nwRev;
-      cashback = exCb + nwCb;
+      onlineOrders = exOrders + nwOrders;
+      onlineRevenue = exRev + nwRev;
+      onlineCashback = exCb + nwCb;
+      if(instore){
+        const avgPct = (exPct + nwPct) / 2;
+        instOrders = parseInt(instoreTx,10)||0;
+        instRevenue = parseFloat(instoreRevenue)||0;
+        instCashback = instRevenue * (avgPct/100);
+      }
+      orders = onlineOrders + instOrders;
+      revenue = onlineRevenue + instRevenue;
+      cashback = onlineCashback + instCashback;
       offerBreakdown={
         existing:{orders:exOrders,revenue:exRev,cashback:exCb,netRevenue:exRev-exCb},
         new:{orders:nwOrders,revenue:nwRev,cashback:nwCb,netRevenue:nwRev-nwCb}
@@ -143,15 +163,11 @@ export default function PublisherForecast() {
     setBaseShares(shares); setWeights(Array(length).fill(1));
     const monthly=shares.map(s=>({orders:orders*s,revenue:revenue*s,cashback:cashback*s,netRevenue:revenue*s-cashback*s}));
     let channelBreakdown=null;
-    if(online && instore){
+    if(instore){
       channelBreakdown={
-        online:{orders:orders/2,revenue:revenue/2,cashback:cashback/2,netRevenue:(netRevenue)/2},
-        instore:{orders:orders/2,revenue:revenue/2,cashback:cashback/2,netRevenue:(netRevenue)/2}
+        online:{orders:onlineOrders,revenue:onlineRevenue,cashback:onlineCashback,netRevenue:onlineRevenue-onlineCashback},
+        instore:{orders:instOrders,revenue:instRevenue,cashback:instCashback,netRevenue:instRevenue-instCashback}
       };
-    }else if(online){
-      channelBreakdown={online:{orders,revenue,cashback,netRevenue}};
-    }else if(instore){
-      channelBreakdown={instore:{orders,revenue,cashback,netRevenue}};
     }
     const cashbackRates =
       mode === 'always'
@@ -375,12 +391,19 @@ export default function PublisherForecast() {
       )}
         <div className="checkbox-row full-width">
           <label className="checkbox">
-            <input type="checkbox" checked={online} onChange={e=>setOnline(e.target.checked)} /> Online
-          </label>
-          <label className="checkbox">
-            <input type="checkbox" checked={instore} onChange={e=>setInstore(e.target.checked)} /> In-store
+            <input type="checkbox" checked={instore} onChange={e=>setInstore(e.target.checked)} /> In-store Offer
           </label>
         </div>
+        {instore && (
+          <>
+            <label className="full-width">In-store Transaction Count
+              <input type="number" value={instoreTx} onChange={e=>setInstoreTx(e.target.value)} />
+            </label>
+            <label className="full-width">In-store Revenue
+              <input type="number" value={instoreRevenue} onChange={e=>setInstoreRevenue(e.target.value)} />
+            </label>
+          </>
+        )}
         <div className="checkbox-row full-width">
           <label className="checkbox">
             <input type="radio" name="mode" value="always" checked={mode==='always'} onChange={e=>setMode(e.target.value)} /> Always-on
