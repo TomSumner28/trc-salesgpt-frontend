@@ -50,14 +50,13 @@ export default function PublisherForecast() {
   const [forecastLength,setForecastLength] = useState('6');
   const [startMonth,setStartMonth] = useState(MONTHS[0]);
   const [mode,setMode] = useState('always');
-  const [online,setOnline] = useState(false);
-  const [instore,setInstore] = useState(false);
-  const [onlineTx,setOnlineTx] = useState('');
-  const [instoreTx,setInstoreTx] = useState('');
+  const [allTx,setAllTx] = useState('');
   const [allRevenue,setAllRevenue] = useState('');
   const [allCashback,setAllCashback] = useState('');
+  const [existingTx,setExistingTx] = useState('');
   const [existingRevenue,setExistingRevenue] = useState('');
   const [existingCashback,setExistingCashback] = useState('');
+  const [newTx,setNewTx] = useState('');
   const [newRevenue,setNewRevenue] = useState('');
   const [newCashback,setNewCashback] = useState('');
   const [results,setResults] = useState(null);
@@ -90,23 +89,32 @@ export default function PublisherForecast() {
 
   const calculate=(e)=>{
     e.preventDefault();
-    const oTx = online ? parseInt(onlineTx,10)||0 : 0;
-    const iTx = instore ? parseInt(instoreTx,10)||0 : 0;
-    const orders = oTx + iTx;
-    let revenue=0,cashback=0,offerBreakdown=null;
+
+    let orders=0;
+    let revenue=0;
+    let cashback=0;
+    let offerBreakdown=null;
+
     if(mode==='always'){
+      orders = parseInt(allTx,10)||0;
       revenue = parseFloat(allRevenue)||0;
-      cashback = parseFloat(allCashback)||0;
+      const cbPct = parseFloat(allCashback)||0;
+      cashback = revenue * (cbPct/100);
     }else{
-      const exRev=parseFloat(existingRevenue)||0;
-      const nwRev=parseFloat(newRevenue)||0;
-      const exCb=parseFloat(existingCashback)||0;
-      const nwCb=parseFloat(newCashback)||0;
+      const exOrders = parseInt(existingTx,10)||0;
+      const nwOrders = parseInt(newTx,10)||0;
+      const exRev = parseFloat(existingRevenue)||0;
+      const nwRev = parseFloat(newRevenue)||0;
+      const exPct = parseFloat(existingCashback)||0;
+      const nwPct = parseFloat(newCashback)||0;
+      const exCb = exRev * (exPct/100);
+      const nwCb = nwRev * (nwPct/100);
+      orders = exOrders + nwOrders;
       revenue = exRev + nwRev;
       cashback = exCb + nwCb;
       offerBreakdown={
-        existing:{orders:orders*0.6,revenue:exRev,cashback:exCb,netRevenue:exRev-exCb},
-        new:{orders:orders*0.4,revenue:nwRev,cashback:nwCb,netRevenue:nwRev-nwCb}
+        existing:{orders:exOrders,revenue:exRev,cashback:exCb,netRevenue:exRev-exCb},
+        new:{orders:nwOrders,revenue:nwRev,cashback:nwCb,netRevenue:nwRev-nwCb}
       };
     }
     const netRevenue = revenue - cashback;
@@ -213,47 +221,37 @@ export default function PublisherForecast() {
               {MONTHS.map(m=>(<option key={m} value={m}>{m}</option>))}
             </select>
           </label>
-          <div className="checkbox-row full-width">
-            <label className="checkbox">
-              <input type="checkbox" checked={online} onChange={e=>setOnline(e.target.checked)} /> Online
-            </label>
-            <label className="checkbox">
-              <input type="checkbox" checked={instore} onChange={e=>setInstore(e.target.checked)} /> In-store
-            </label>
-          </div>
-          {online && (
-            <label>
-              Online Transactions
-              <input type="number" value={onlineTx} onChange={e=>setOnlineTx(e.target.value)} />
-            </label>
-          )}
-          {instore && (
-            <label>
-              In-store Transactions
-              <input type="number" value={instoreTx} onChange={e=>setInstoreTx(e.target.value)} />
-            </label>
-          )}
+
           {mode==='always' ? (
             <>
+              <label className="full-width">All Transactions
+                <input type="number" value={allTx} onChange={e=>setAllTx(e.target.value)} />
+              </label>
               <label className="full-width">All Transactions Revenue
                 <input type="number" value={allRevenue} onChange={e=>setAllRevenue(e.target.value)} />
               </label>
-              <label className="full-width">All Transactions Cashback
+              <label className="full-width">All Transactions Cashback %
                 <input type="number" value={allCashback} onChange={e=>setAllCashback(e.target.value)} />
               </label>
             </>
           ) : (
             <>
+              <label className="full-width">Existing Transactions
+                <input type="number" value={existingTx} onChange={e=>setExistingTx(e.target.value)} />
+              </label>
               <label className="full-width">Existing Customer Revenue
                 <input type="number" value={existingRevenue} onChange={e=>setExistingRevenue(e.target.value)} />
               </label>
-              <label className="full-width">Existing Customer Cashback
+              <label className="full-width">Existing Cashback %
                 <input type="number" value={existingCashback} onChange={e=>setExistingCashback(e.target.value)} />
+              </label>
+              <label className="full-width">New Transactions
+                <input type="number" value={newTx} onChange={e=>setNewTx(e.target.value)} />
               </label>
               <label className="full-width">New Customer Revenue
                 <input type="number" value={newRevenue} onChange={e=>setNewRevenue(e.target.value)} />
               </label>
-              <label className="full-width">New Customer Cashback
+              <label className="full-width">New Cashback %
                 <input type="number" value={newCashback} onChange={e=>setNewCashback(e.target.value)} />
               </label>
             </>
