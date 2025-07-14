@@ -166,6 +166,31 @@ export default function Forecast() {
             {formatCurrency(results.total.cashback, results.currency)}
           </td>
         </tr>
+        {(() => {
+          const ex = results.cashbackRates?.existing || 0;
+          const nw = results.cashbackRates?.new || 0;
+          if (ex > 0 && nw > 0) {
+            return (
+              <>
+                <tr>
+                  <th>New Customer Total Cashback</th>
+                  <td>{nw}%</td>
+                </tr>
+                <tr>
+                  <th>Existing Customer Total Cashback</th>
+                  <td>{ex}%</td>
+                </tr>
+              </>
+            );
+          }
+          const rate = ex > 0 ? ex : nw;
+          return rate ? (
+            <tr>
+              <th>Total Cashback</th>
+              <td>{rate}%</td>
+            </tr>
+          ) : null;
+        })()}
         <tr>
           <th>Net Revenue</th>
           <td>
@@ -469,6 +494,10 @@ export default function Forecast() {
       offerBreakdown,
       channelBreakdown,
       currency,
+      cashbackRates: {
+        existing: existingCb,
+        new: newCb,
+      },
     });
   };
 
