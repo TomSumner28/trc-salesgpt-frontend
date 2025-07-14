@@ -242,6 +242,11 @@ form.form label.checkbox {
   border: 1px solid var(--border-color);
 }
 
+.row-link {
+  display: block;
+  width: 100%;
+}
+
 .disclaimer {
   margin-top: 20px;
   font-size: 0.9rem;

@@ -31,6 +31,13 @@ export default function ViewForecast() {
   const resultsRef = useRef(null);
 
   if (!forecast) {
+    if (forecasts.length === 0) {
+      return (
+        <main className="container">
+          <p>Loading...</p>
+        </main>
+      );
+    }
     return (
       <main className="container">
         <p>Forecast not found.</p>
