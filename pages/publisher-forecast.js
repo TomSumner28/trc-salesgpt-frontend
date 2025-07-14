@@ -64,9 +64,14 @@ export default function PublisherForecast() {
   const [newTx,setNewTx] = useState('');
   const [newRevenue,setNewRevenue] = useState('');
   const [newCashback,setNewCashback] = useState('');
+  const [otherDetails,setOtherDetails] = useState('');
+  const [trcMargin,setTrcMargin] = useState('');
+  const [trcMarginExisting,setTrcMarginExisting] = useState('');
+  const [trcMarginNew,setTrcMarginNew] = useState('');
   const [results,setResults] = useState(null);
   const [view,setView] = useState('global');
   const [theme,setTheme] = useState('light');
+  const [showTrc,setShowTrc] = useState(false);
   const [baseShares,setBaseShares] = useState([]);
   const [weights,setWeights] = useState([]);
   const resultsRef = useRef(null);
@@ -99,6 +104,10 @@ export default function PublisherForecast() {
       setNewTx(inp.newTx || '');
       setNewRevenue(inp.newRevenue || '');
       setNewCashback(inp.newCashback || '');
+      setOtherDetails(inp.otherDetails || '');
+      setTrcMargin(inp.trcMargin || '');
+      setTrcMarginExisting(inp.trcMarginExisting || '');
+      setTrcMarginNew(inp.trcMarginNew || '');
       if (f.results) setResults(f.results);
     }
   }, [router.query.edit, forecasts]);
@@ -115,8 +124,20 @@ export default function PublisherForecast() {
       cashback: cashback*s,
       netRevenue: revenue*s - cashback*s,
     }));
-    setResults(prev=>({...prev,monthly}));
-  },[weights]);
+    const trc = shares.map((s,i)=>{
+      if(mode==='always'){
+        const m=parseFloat(trcMargin)||0;
+        return revenue*s*(m/100);
+      }else{
+        const exRev=parseFloat(existingRevenue)||0;
+        const nwRev=parseFloat(newRevenue)||0;
+        const mE=parseFloat(trcMarginExisting)||0;
+        const mN=parseFloat(trcMarginNew)||0;
+        return exRev*s*(mE/100)+nwRev*s*(mN/100);
+      }
+    });
+    setResults(prev=>({...prev,monthly,trcMonthly:trc,trcRevenue:trc.reduce((a,b)=>a+b,0)}));
+  },[weights,trcMargin,trcMarginExisting,trcMarginNew]);
 
   const updateWeight = (idx,val)=>{
     setWeights(prev=>{const next=[...prev]; next[idx]=val; return next;});
@@ -225,13 +246,21 @@ export default function PublisherForecast() {
     if (!resultsRef.current) return;
     const viewToggle = resultsRef.current.querySelector('.view-toggle');
     const sliderRow = resultsRef.current.querySelector('.slider-row');
+    const saveBtn = resultsRef.current.querySelector('.save-btn');
+    const trcSection = resultsRef.current.querySelector('.trc-section');
     const prevView = viewToggle ? viewToggle.style.display : '';
     const prevSlider = sliderRow ? sliderRow.style.display : '';
+    const prevSave = saveBtn ? saveBtn.style.display : '';
+    const prevTrc = trcSection ? trcSection.style.display : '';
     if (viewToggle) viewToggle.style.display = 'none';
     if (sliderRow) sliderRow.style.display = 'none';
+    if (saveBtn) saveBtn.style.display = 'none';
+    if (trcSection) trcSection.style.display = 'none';
     const canvas = await html2canvas(resultsRef.current);
     if (viewToggle) viewToggle.style.display = prevView;
     if (sliderRow) sliderRow.style.display = prevSlider;
+    if (saveBtn) saveBtn.style.display = prevSave;
+    if (trcSection) trcSection.style.display = prevTrc;
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -276,6 +305,10 @@ export default function PublisherForecast() {
         newTx,
         newRevenue,
         newCashback,
+        otherDetails,
+        trcMargin,
+        trcMarginExisting,
+        trcMarginNew,
       },
       results,
     });
@@ -289,12 +322,6 @@ export default function PublisherForecast() {
         <tr><th>Transaction Count</th><td>{formatNumber(Math.round(results.total.orders))}</td></tr>
         <tr><th>Revenue</th><td>{formatCurrency(results.total.revenue,currency)}</td></tr>
         <tr><th>Total Cashback</th><td>{formatCurrency(results.total.cashback,currency)}</td></tr>
-        {results.cashbackSplit && (
-          <>
-            <tr><th>Total Cashback Existing</th><td>{formatCurrency(results.cashbackSplit.existing,currency)}</td></tr>
-            <tr><th>Total Cashback New</th><td>{formatCurrency(results.cashbackSplit.new,currency)}</td></tr>
-          </>
-        )}
         {(() => {
           const ex = results.cashbackRates?.existing || 0;
           const nw = results.cashbackRates?.new || 0;
@@ -313,6 +340,7 @@ export default function PublisherForecast() {
         })()}
         <tr><th>Net Revenue</th><td>{formatCurrency(results.total.netRevenue,currency)}</td></tr>
         <tr><th>Average Order Value</th><td>{formatCurrency(results.total.aov,currency)}</td></tr>
+        {otherDetails && <tr><th>Other Offer Details</th><td>{otherDetails}</td></tr>}
         <tr><th>ROAS</th><td>{results.total.roas.toFixed(2)}x</td></tr>
       </tbody>
     </table>
@@ -413,6 +441,8 @@ export default function PublisherForecast() {
             <select value={forecastLength} onChange={e=>setForecastLength(e.target.value)}>
               <option value="3">3 Months</option>
               <option value="6">6 Months</option>
+              <option value="9">9 Months</option>
+              <option value="12">12 Months</option>
             </select>
           </label>
           <label>Starting Month
@@ -470,6 +500,9 @@ export default function PublisherForecast() {
             </label>
           </>
         )}
+        <label className="full-width">Other Offer Details
+          <input value={otherDetails} onChange={e=>setOtherDetails(e.target.value)} />
+        </label>
         <div className="checkbox-row full-width">
           <label className="checkbox">
             <input type="radio" name="mode" value="always" checked={mode==='always'} onChange={e=>setMode(e.target.value)} /> Always-on
@@ -491,7 +524,11 @@ export default function PublisherForecast() {
               </select>
               <button type="button" onClick={downloadPdf}>Download PDF</button>
             </div>
-            <h2>{retailer ? `${retailer} Forecast` : 'Forecast'}</h2>
+            <h2>
+              {retailer
+                ? `${retailer} - ${forecastLength} Month Forecast`
+                : `${forecastLength} Month Forecast`}
+            </h2>
             {view==='global' && <GlobalView />}
             {view==='offer' && <OfferView />}
             {view==='channel' && <ChannelView />}
@@ -543,14 +580,59 @@ export default function PublisherForecast() {
                 })()}
               </tbody>
             </table>
+            <button type="button" onClick={()=>setShowTrc(!showTrc)} className="full-width">
+              {showTrc ? 'Hide' : 'Show'} The Reward Collection Revenue Projections
+            </button>
+            {showTrc && (
+              <div className="trc-section">
+                {mode==='always' ? (
+                  <label className="full-width">TRC Margin %
+                    <input type="number" value={trcMargin} onChange={e=>setTrcMargin(e.target.value)} />
+                  </label>
+                ) : (
+                  <>
+                    <label className="full-width">TRC Margin Existing %
+                      <input type="number" value={trcMarginExisting} onChange={e=>setTrcMarginExisting(e.target.value)} />
+                    </label>
+                    <label className="full-width">TRC Margin New %
+                      <input type="number" value={trcMarginNew} onChange={e=>setTrcMarginNew(e.target.value)} />
+                    </label>
+                  </>
+                )}
+                <table className="monthly-table">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      {results.monthLabels.map((m,i)=>(<th key={i}>{m}</th>))}
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(()=>{
+                      const makeRow=(label,arr,fmt)=>{const tot=arr.reduce((a,b)=>a+b,0);return (<tr><td>{label}</td>{arr.map((v,i)=>(<td key={i}>{fmt(v)}</td>))}<td>{fmt(tot)}</td></tr>);};
+                      return (
+                        <>
+                          {makeRow('Transaction Count',results.monthly.map(m=>m.orders),v=>formatNumber(Math.round(v)))}
+                          {makeRow('Revenue',results.monthly.map(m=>m.revenue),v=>formatCurrency(v,currency))}
+                          {makeRow('Total Cashback',results.monthly.map(m=>m.cashback),v=>formatCurrency(v,currency))}
+                          {makeRow('Net Revenue',results.monthly.map(m=>m.netRevenue),v=>formatCurrency(v,currency))}
+                          {makeRow('TRC Revenue',results.trcMonthly||[],v=>formatCurrency(v,currency))}
+                        </>
+                      );
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            )}
             <p className="disclaimer">
               <strong>Disclaimer:</strong><br />
-              All forecasts are based on historic sales data and can vary based on a number of variables. These forecasts should not be used as an exact budget but more as a gauge of the success of a campaign with The Reward Collection. We're looking forward to advancing our conversations.<br /><br />
+              All forecasts are based on historical performance data and may fluctuate depending on a range of variables. These figures are intended as directional guidance rather than fixed budgets, offering insight into the potential success of your campaign with The Reward Collection.<br /><br />
+              We’re looking forward to getting this campaign up and running with {publisher} and continuing to build on our partnership.<br /><br />
               Thanks,<br />
               {manager.charAt(0).toUpperCase()+manager.slice(1)}<br />
               {manager}@thewardcollection.com
             </p>
-            <button type="button" onClick={saveForecast}>Save Forecast</button>
+            <button type="button" onClick={saveForecast} className="save-btn">Save Forecast</button>
           </div>
         )}
       </main>

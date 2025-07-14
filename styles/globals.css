@@ -206,6 +206,11 @@ form.form label.checkbox {
 .theme-switch button {
   margin-top: 0;
 }
+.theme-switch input {
+  margin-top: 8px;
+  padding: 6px;
+  width: 150px;
+}
 
 .side-by-side {
   display: flex;
@@ -237,4 +242,8 @@ form.form label.checkbox {
 
 .slider-row input[type='range'] {
   width: 100px;
+}
+
+.trc-section {
+  margin-top: 20px;
 }

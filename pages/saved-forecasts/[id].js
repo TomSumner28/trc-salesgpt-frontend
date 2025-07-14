@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useSavedForecasts } from '../../lib/useSavedForecasts';
@@ -40,6 +40,9 @@ export default function ViewForecast() {
   }
 
   const { type, retailer, publisher, manager, rep, results } = forecast;
+  const [view,setView] = useState('global');
+  const [theme,setTheme] = useState('light');
+  useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
 
   const downloadPdf = async () => {
     if (!resultsRef.current) return;
@@ -95,20 +98,20 @@ export default function ViewForecast() {
           <td>{formatCurrency(results.total.cashback, results.currency || forecast.currency)}</td>
         </tr>
         {results.cashbackRates && (
-          <>
-            {results.cashbackRates.new > 0 && (
-              <tr>
-                <th>New Customer Total Cashback</th>
-                <td>{results.cashbackRates.new}%</td>
-              </tr>
-            )}
-            {results.cashbackRates.existing > 0 && (
-              <tr>
-                <th>Existing Customer Total Cashback</th>
-                <td>{results.cashbackRates.existing}%</td>
-              </tr>
-            )}
-          </>
+          (() => {
+            const ex = results.cashbackRates.existing || 0;
+            const nw = results.cashbackRates.new || 0;
+            if (ex > 0 && nw > 0) {
+              return (
+                <>
+                  <tr><th>New Customer Total Cashback</th><td>{nw}%</td></tr>
+                  <tr><th>Existing Customer Total Cashback</th><td>{ex}%</td></tr>
+                </>
+              );
+            }
+            const rate = ex > 0 ? ex : nw;
+            return rate ? (<tr><th>Total Cashback</th><td>{rate}%</td></tr>) : null;
+          })()
         )}
         <tr>
           <th>Net Revenue</th>
@@ -118,6 +121,12 @@ export default function ViewForecast() {
           <tr>
             <th>Average Order Value</th>
             <td>{formatCurrency(results.total.aov, results.currency || forecast.currency)}</td>
+          </tr>
+        )}
+        {forecast.inputs?.otherDetails && (
+          <tr>
+            <th>Other Offer Details</th>
+            <td>{forecast.inputs.otherDetails}</td>
           </tr>
         )}
         <tr>
@@ -199,9 +208,20 @@ export default function ViewForecast() {
           <Link href="/saved-forecasts" style={{ marginLeft: '20px' }}>
             Saved Forecasts
           </Link>
+          <div className="theme-switch">
+            <button type="button" onClick={() => setTheme(theme==='dark'?'light':'dark')}>
+              {theme==='dark'?'Light Mode':'Dark Mode'}
+            </button>
+          </div>
         </div>
         <h1>Saved Forecast</h1>
         <div className="view-toggle">
+          <select value={view} onChange={e=>setView(e.target.value)}>
+            <option value="global">High Level Campaign Metrics</option>
+            {results.offerBreakdown && <option value="offer">By Offer Type</option>}
+            {results.channelBreakdown && <option value="channel">By Channel</option>}
+            <option value="all">View All</option>
+          </select>
           <button type="button" onClick={() => router.push(editPath)}>
             Edit Forecast
           </button>
@@ -209,11 +229,31 @@ export default function ViewForecast() {
         </div>
         <div ref={resultsRef}>
           <h2>
-            {retailer ? `${retailer} Forecast` : 'Forecast'}
+            {retailer ? `${retailer} - ${forecast.inputs?.forecastLength || results.monthLabels.length} Month Forecast` : 'Forecast'}
           </h2>
-          <GlobalView />
-          {OfferView()}
-          {ChannelView()}
+          {view==='global' && <GlobalView />}
+          {view==='offer' && <OfferView />}
+          {view==='channel' && <ChannelView />}
+          {view==='all' && (
+            <div className="side-by-side">
+              <div>
+                <h3>High Level Campaign Metrics</h3>
+                <GlobalView />
+              </div>
+              {results.offerBreakdown && (
+                <div>
+                  <h3>By Offer Type</h3>
+                  <OfferView />
+                </div>
+              )}
+              {results.channelBreakdown && (
+                <div>
+                  <h3>By Channel</h3>
+                  <ChannelView />
+                </div>
+              )}
+            </div>
+          )}
           {results.monthly && (
             <>
               <h3>Monthly Projection</h3>
@@ -266,7 +306,7 @@ export default function ViewForecast() {
                               results.currency || forecast.currency
                             )
                         )}
-                        {makeRow(
+                  {makeRow(
                           'Net Revenue',
                           results.monthly.map((m) => m.netRevenue),
                           (v) =>
@@ -282,6 +322,14 @@ export default function ViewForecast() {
               </table>
             </>
           )}
+          <p className="disclaimer">
+            <strong>Disclaimer:</strong><br />
+            All forecasts are based on historical performance data and may fluctuate depending on a range of variables. These figures are intended as directional guidance rather than fixed budgets, offering insight into the potential success of your campaign with The Reward Collection.<br /><br />
+            We’re looking forward to getting this campaign up and running with {publisher} and continuing to build on our partnership.<br /><br />
+            Thanks,<br />
+            {(manager || rep).charAt(0).toUpperCase() + (manager || rep).slice(1)}<br />
+            {(manager || rep)}@thewardcollection.com
+          </p>
         </div>
       </main>
     </>

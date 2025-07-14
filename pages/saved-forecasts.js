@@ -1,9 +1,16 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useSavedForecasts } from '../lib/useSavedForecasts';
 
 export default function SavedForecasts() {
   const [forecasts, , removeForecast] = useSavedForecasts();
+  const [query,setQuery] = useState('');
+  const [theme,setTheme] = useState('light');
+  useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
+  const filtered = forecasts.filter(f =>
+    (f.retailer || f.publisher || '').toLowerCase().includes(query.toLowerCase())
+  );
   return (
     <>
       <Head>
@@ -19,6 +26,17 @@ export default function SavedForecasts() {
           <Link href="/saved-forecasts" style={{ marginLeft: '20px' }}>
             Saved Forecasts
           </Link>
+          <div className="theme-switch">
+            <button type="button" onClick={() => setTheme(theme==='dark'?'light':'dark')}>
+              {theme==='dark'?'Light Mode':'Dark Mode'}
+            </button>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={query}
+              onChange={e=>setQuery(e.target.value)}
+            />
+          </div>
         </div>
         <h1>Saved Forecasts</h1>
         {forecasts.length === 0 ? (
@@ -33,7 +51,7 @@ export default function SavedForecasts() {
               </tr>
             </thead>
             <tbody>
-              {forecasts.map((f) => (
+              {filtered.map((f) => (
                 <tr key={f.id}>
                   <td>
                     <Link href={`/saved-forecasts/${f.id}`}>
