@@ -153,16 +153,25 @@ export default function PublisherForecast() {
     }else if(instore){
       channelBreakdown={instore:{orders,revenue,cashback,netRevenue}};
     }
+    const cashbackRates =
+      mode === 'always'
+        ? { existing: parseFloat(allCashback) || 0 }
+        : {
+            existing: parseFloat(existingCashback) || 0,
+            new: parseFloat(newCashback) || 0,
+          };
+
     setResults({
-      total:{orders,revenue,cashback,netRevenue,roas,aov},
+      total: { orders, revenue, cashback, netRevenue, roas, aov },
       monthLabels,
       monthly,
       offerBreakdown,
       channelBreakdown,
       cashbackSplit,
+      cashbackRates,
       manager,
       currency,
-      publisher
+      publisher,
     });
   };
 
@@ -204,6 +213,22 @@ export default function PublisherForecast() {
             <tr><th>Total Cashback New</th><td>{formatCurrency(results.cashbackSplit.new,currency)}</td></tr>
           </>
         )}
+        {(() => {
+          const ex = results.cashbackRates?.existing || 0;
+          const nw = results.cashbackRates?.new || 0;
+          if (ex > 0 && nw > 0) {
+            return (
+              <>
+                <tr><th>New Customer Total Cashback</th><td>{nw}%</td></tr>
+                <tr><th>Existing Customer Total Cashback</th><td>{ex}%</td></tr>
+              </>
+            );
+          }
+          const rate = ex > 0 ? ex : nw;
+          return rate ? (
+            <tr><th>Total Cashback</th><td>{rate}%</td></tr>
+          ) : null;
+        })()}
         <tr><th>Net Revenue</th><td>{formatCurrency(results.total.netRevenue,currency)}</td></tr>
         <tr><th>Average Order Value</th><td>{formatCurrency(results.total.aov,currency)}</td></tr>
         <tr><th>ROAS</th><td>{results.total.roas.toFixed(2)}x</td></tr>
