@@ -323,9 +323,6 @@ export default function PublisherForecast() {
     <table className="summary-table">
       <tbody>
         <tr><th>Publisher</th><td>{publisher}</td></tr>
-        <tr><th>Transaction Count</th><td>{formatNumber(Math.round(results.total.orders))}</td></tr>
-        <tr><th>Revenue</th><td>{formatCurrency(results.total.revenue,currency)}</td></tr>
-        <tr><th>Total Cashback</th><td>{formatCurrency(results.total.cashback,currency)}</td></tr>
         {(() => {
           const ex = results.cashbackRates?.existing || 0;
           const nw = results.cashbackRates?.new || 0;
@@ -342,9 +339,12 @@ export default function PublisherForecast() {
             <tr><th>Total Cashback</th><td>{rate}%</td></tr>
           ) : null;
         })()}
+        {otherDetails && <tr><th>Other Offer Details</th><td>{otherDetails}</td></tr>}
+        <tr><th>Transaction Count</th><td>{formatNumber(Math.round(results.total.orders))}</td></tr>
+        <tr><th>Revenue</th><td>{formatCurrency(results.total.revenue,currency)}</td></tr>
+        <tr><th>Total Cashback</th><td>{formatCurrency(results.total.cashback,currency)}</td></tr>
         <tr><th>Net Revenue</th><td>{formatCurrency(results.total.netRevenue,currency)}</td></tr>
         <tr><th>Average Order Value</th><td>{formatCurrency(results.total.aov,currency)}</td></tr>
-        {otherDetails && <tr><th>Other Offer Details</th><td>{otherDetails}</td></tr>}
         <tr><th>ROAS</th><td>{results.total.roas.toFixed(2)}x</td></tr>
       </tbody>
     </table>
@@ -409,10 +409,12 @@ export default function PublisherForecast() {
       <Head><title>Publisher Forecasts</title></Head>
       <main className="container">
         <div className="top-bar">
-          <Link href="/">Forecasting</Link>
-          <Link href="/publishers" style={{ marginLeft:'20px' }}>Publishers</Link>
-          <Link href="/publisher-forecast" style={{ marginLeft:'20px' }}>Publisher Forecasts</Link>
-          <Link href="/saved-forecasts" style={{ marginLeft:'20px' }}>Saved Forecasts</Link>
+          <div className="nav-links">
+            <Link href="/">Forecasting</Link>
+            <Link href="/publishers">Publishers</Link>
+            <Link href="/publisher-forecast">Publisher Forecasts</Link>
+            <Link href="/saved-forecasts">Saved Forecasts</Link>
+          </div>
           <div className="theme-switch">
             <button type="button" onClick={()=>setTheme(theme==='dark'?'light':'dark')}>
               {theme==='dark'?'Light Mode':'Dark Mode'}

@@ -585,13 +585,12 @@ export default function Forecast() {
       </Head>
       <main className="container">
         <div className="top-bar">
-          <Link href="/publishers">Publishers</Link>
-          <Link href="/publisher-forecast" style={{ marginLeft: '20px' }}>
-            Publisher Forecasts
-          </Link>
-          <Link href="/saved-forecasts" style={{ marginLeft: '20px' }}>
-            Saved Forecasts
-          </Link>
+          <div className="nav-links">
+            <Link href="/">Forecasting</Link>
+            <Link href="/publishers">Publishers</Link>
+            <Link href="/publisher-forecast">Publisher Forecasts</Link>
+            <Link href="/saved-forecasts">Saved Forecasts</Link>
+          </div>
           <div className="theme-switch">
             <button
               type="button"

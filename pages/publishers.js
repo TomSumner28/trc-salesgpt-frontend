@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { usePublishers, DEFAULT_PUBLISHERS } from '../lib/usePublishers';
 
 export default function PublisherAdmin() {
   const [publishers, setPublishers] = usePublishers();
+  const [theme, setTheme] = useState('light');
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({
     network: '',
@@ -62,13 +66,18 @@ export default function PublisherAdmin() {
       </Head>
       <main className="container">
         <div className="top-bar">
-          <Link href="/">Forecasting</Link>
-          <Link href="/publishers" style={{ marginLeft: '20px' }}>Publishers</Link>
-          <Link href="/publisher-forecast" style={{ marginLeft: '20px' }}>Publisher Forecasts</Link>
-          <Link href="/saved-forecasts" style={{ marginLeft: '20px' }}>Saved Forecasts</Link>
-          <button type="button" onClick={restoreDefaults} style={{ marginLeft: 'auto' }}>
-            Restore Defaults
-          </button>
+          <div className="nav-links">
+            <Link href="/">Forecasting</Link>
+            <Link href="/publishers">Publishers</Link>
+            <Link href="/publisher-forecast">Publisher Forecasts</Link>
+            <Link href="/saved-forecasts">Saved Forecasts</Link>
+            <button type="button" onClick={restoreDefaults}>Restore Defaults</button>
+          </div>
+          <div className="theme-switch">
+            <button type="button" onClick={() => setTheme(theme==='dark'?'light':'dark')}>
+              {theme==='dark'?'Light Mode':'Dark Mode'}
+            </button>
+          </div>
         </div>
         <h1>Publishers</h1>
         <table className="monthly-table">

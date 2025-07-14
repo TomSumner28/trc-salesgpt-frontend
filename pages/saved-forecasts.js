@@ -5,12 +5,8 @@ import { useSavedForecasts } from '../lib/useSavedForecasts';
 
 export default function SavedForecasts() {
   const [forecasts, , removeForecast] = useSavedForecasts();
-  const [query,setQuery] = useState('');
   const [theme,setTheme] = useState('light');
   useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
-  const filtered = forecasts.filter(f =>
-    (f.retailer || f.publisher || '').toLowerCase().includes(query.toLowerCase())
-  );
   return (
     <>
       <Head>
@@ -18,21 +14,13 @@ export default function SavedForecasts() {
       </Head>
       <main className="container">
         <div className="top-bar">
-          <Link href="/">Forecasting</Link>
-          <Link href="/publishers" style={{ marginLeft: '20px' }}>Publishers</Link>
-          <Link href="/publisher-forecast" style={{ marginLeft: '20px' }}>
-            Publisher Forecasts
-          </Link>
-          <Link href="/saved-forecasts" style={{ marginLeft: '20px' }}>
-            Saved Forecasts
-          </Link>
+          <div className="nav-links">
+            <Link href="/">Forecasting</Link>
+            <Link href="/publishers">Publishers</Link>
+            <Link href="/publisher-forecast">Publisher Forecasts</Link>
+            <Link href="/saved-forecasts">Saved Forecasts</Link>
+          </div>
           <div className="theme-switch">
-            <input
-              type="text"
-              placeholder="Search..."
-              value={query}
-              onChange={e=>setQuery(e.target.value)}
-            />
             <button type="button" onClick={() => setTheme(theme==='dark'?'light':'dark')}>
               {theme==='dark'?'Light Mode':'Dark Mode'}
             </button>
@@ -51,7 +39,7 @@ export default function SavedForecasts() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((f) => (
+              {forecasts.map((f) => (
                 <tr key={f.id}>
                   <td>
                     <Link href={`/saved-forecasts/${f.id}`}>

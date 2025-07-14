@@ -196,6 +196,14 @@ form.form label.checkbox {
   right: 20px;
 }
 
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+.nav-links a {
+  margin-right: 0;
+}
+
 .top-bar {
   display: flex;
   justify-content: space-between;
