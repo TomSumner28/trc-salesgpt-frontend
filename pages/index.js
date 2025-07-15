@@ -52,8 +52,10 @@ const CONVERSION_BY_TIER = {
 const MONTH_DELTAS = [0, 0.05, 0.07, -0.02, 0.06, 0.04];
 
 
+const NUM_FORMAT = new Intl.NumberFormat('en-US');
+
 function formatNumber(n) {
-  return n.toLocaleString();
+  return NUM_FORMAT.format(Number(n || 0));
 }
 
 const REGION_CURRENCIES = {
@@ -656,7 +658,8 @@ export default function Forecast() {
                   onChange={(e) =>
                     setReach((curr) => ({
                       ...curr,
-                      [r]: parseInt(e.target.value.replace(/,/g, ''), 10) || 0,
+                      [r]:
+                        parseInt(e.target.value.replace(/[^0-9.]/g, ''), 10) || 0,
                     }))
                   }
                 />

@@ -27,19 +27,21 @@ const MONTH_CHANGES = {
 
 const CURRENCY_SYMBOLS = { GBP: '£', USD: '$', EUR: '€' };
 
+const NUM_FORMAT = new Intl.NumberFormat('en-US');
+
 function formatNumber(n) {
-  return Number(n || 0).toLocaleString('en-US');
+  return NUM_FORMAT.format(Number(n || 0));
 }
 
 function formatInputValue(v) {
   if (v === '' || v === null || v === undefined) return '';
   const parts = String(v).split('.');
-  parts[0] = Number(parts[0]).toLocaleString('en-US');
+  parts[0] = NUM_FORMAT.format(Number(parts[0].replace(/,/g, '')));
   return parts.join('.');
 }
 
 function parseInputValue(v) {
-  return v.replace(/,/g, '');
+  return v.replace(/[^0-9.]/g, '');
 }
 
 function formatCurrency(n, code) {
