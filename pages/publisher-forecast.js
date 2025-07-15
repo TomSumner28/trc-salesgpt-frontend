@@ -31,6 +31,17 @@ function formatNumber(n) {
   return Number(n || 0).toLocaleString('en-US');
 }
 
+function formatInputValue(v) {
+  if (v === '' || v === null || v === undefined) return '';
+  const parts = String(v).split('.');
+  parts[0] = Number(parts[0]).toLocaleString('en-US');
+  return parts.join('.');
+}
+
+function parseInputValue(v) {
+  return v.replace(/,/g, '');
+}
+
 function formatCurrency(n, code) {
   const symbol = CURRENCY_SYMBOLS[code] || '';
   return (
@@ -460,34 +471,34 @@ export default function PublisherForecast() {
           {mode==='always' ? (
             <>
               <label className="full-width">Transaction Count
-                <input type="number" value={allTx} onChange={e=>setAllTx(e.target.value)} />
+                <input type="text" value={formatInputValue(allTx)} onChange={e=>setAllTx(parseInputValue(e.target.value))} />
               </label>
               <label className="full-width">Transaction Revenue
-                <input type="number" value={allRevenue} onChange={e=>setAllRevenue(e.target.value)} />
+                <input type="text" value={formatInputValue(allRevenue)} onChange={e=>setAllRevenue(parseInputValue(e.target.value))} />
               </label>
               <label className="full-width">Cashback %
-                <input type="number" value={allCashback} onChange={e=>setAllCashback(e.target.value)} />
+                <input type="text" value={formatInputValue(allCashback)} onChange={e=>setAllCashback(parseInputValue(e.target.value))} />
               </label>
             </>
           ) : (
             <>
               <label className="full-width">Existing Transaction Count
-                <input type="number" value={existingTx} onChange={e=>setExistingTx(e.target.value)} />
+                <input type="text" value={formatInputValue(existingTx)} onChange={e=>setExistingTx(parseInputValue(e.target.value))} />
               </label>
               <label className="full-width">Existing Customer Revenue
-                <input type="number" value={existingRevenue} onChange={e=>setExistingRevenue(e.target.value)} />
+                <input type="text" value={formatInputValue(existingRevenue)} onChange={e=>setExistingRevenue(parseInputValue(e.target.value))} />
               </label>
               <label className="full-width">Existing Cashback %
-                <input type="number" value={existingCashback} onChange={e=>setExistingCashback(e.target.value)} />
+                <input type="text" value={formatInputValue(existingCashback)} onChange={e=>setExistingCashback(parseInputValue(e.target.value))} />
               </label>
               <label className="full-width">New Transaction Count
-                <input type="number" value={newTx} onChange={e=>setNewTx(e.target.value)} />
+                <input type="text" value={formatInputValue(newTx)} onChange={e=>setNewTx(parseInputValue(e.target.value))} />
               </label>
               <label className="full-width">New Customer Revenue
-                <input type="number" value={newRevenue} onChange={e=>setNewRevenue(e.target.value)} />
+                <input type="text" value={formatInputValue(newRevenue)} onChange={e=>setNewRevenue(parseInputValue(e.target.value))} />
               </label>
           <label className="full-width">New Cashback %
-            <input type="number" value={newCashback} onChange={e=>setNewCashback(e.target.value)} />
+            <input type="text" value={formatInputValue(newCashback)} onChange={e=>setNewCashback(parseInputValue(e.target.value))} />
           </label>
         </>
       )}
@@ -499,10 +510,10 @@ export default function PublisherForecast() {
         {instore && (
           <>
             <label className="full-width">In-store Transaction Count
-              <input type="number" value={instoreTx} onChange={e=>setInstoreTx(e.target.value)} />
+              <input type="text" value={formatInputValue(instoreTx)} onChange={e=>setInstoreTx(parseInputValue(e.target.value))} />
             </label>
             <label className="full-width">In-store Revenue
-              <input type="number" value={instoreRevenue} onChange={e=>setInstoreRevenue(e.target.value)} />
+              <input type="text" value={formatInputValue(instoreRevenue)} onChange={e=>setInstoreRevenue(parseInputValue(e.target.value))} />
             </label>
           </>
         )}
@@ -593,15 +604,15 @@ export default function PublisherForecast() {
               <div className="trc-section">
                 {mode==='always' ? (
                   <label className="full-width">TRC Margin %
-                    <input type="number" value={trcMargin} onChange={e=>setTrcMargin(e.target.value)} />
+                    <input type="text" value={formatInputValue(trcMargin)} onChange={e=>setTrcMargin(parseInputValue(e.target.value))} />
                   </label>
                 ) : (
                   <>
                     <label className="full-width">TRC Margin Existing %
-                      <input type="number" value={trcMarginExisting} onChange={e=>setTrcMarginExisting(e.target.value)} />
+                      <input type="text" value={formatInputValue(trcMarginExisting)} onChange={e=>setTrcMarginExisting(parseInputValue(e.target.value))} />
                     </label>
                     <label className="full-width">TRC Margin New %
-                      <input type="number" value={trcMarginNew} onChange={e=>setTrcMarginNew(e.target.value)} />
+                      <input type="text" value={formatInputValue(trcMarginNew)} onChange={e=>setTrcMarginNew(parseInputValue(e.target.value))} />
                     </label>
                   </>
                 )}

@@ -27,17 +27,18 @@ export default function ViewForecast() {
   const router = useRouter();
   const { id } = router.query;
   const [forecasts] = useSavedForecasts();
-  const forecast = forecasts.find((f) => f.id === Number(id));
   const resultsRef = useRef(null);
 
+  if (!router.isReady || forecasts.length === 0) {
+    return (
+      <main className="container">
+        <p>Loading...</p>
+      </main>
+    );
+  }
+
+  const forecast = forecasts.find((f) => f.id === Number(id));
   if (!forecast) {
-    if (forecasts.length === 0) {
-      return (
-        <main className="container">
-          <p>Loading...</p>
-        </main>
-      );
-    }
     return (
       <main className="container">
         <p>Forecast not found.</p>

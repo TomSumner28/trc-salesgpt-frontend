@@ -42,9 +42,7 @@ export default function SavedForecasts() {
               {forecasts.map((f) => (
                 <tr key={f.id}>
                   <td>
-                    <Link href={`/saved-forecasts/${f.id}`} legacyBehavior>
-                      <a className="row-link">{f.retailer || f.publisher || 'Forecast'}</a>
-                    </Link>
+                    <a className="row-link" href={`/saved-forecasts/${f.id}`}>{f.retailer || f.publisher || 'Forecast'}</a>
                   </td>
                   <td>{new Date(f.savedAt).toLocaleString()}</td>
                   <td>
