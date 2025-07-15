@@ -236,7 +236,7 @@ export default function ViewForecast() {
           </button>
           <button type="button" onClick={downloadPdf}>Download PDF</button>
         </div>
-        <div ref={resultsRef}>
+        <div className="results" ref={resultsRef}>
           <h2>
             {retailer ? `${retailer} - ${forecast.inputs?.forecastLength || monthLabels.length} Month Forecast` : 'Forecast'}
           </h2>
