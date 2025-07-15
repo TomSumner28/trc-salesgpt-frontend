@@ -28,13 +28,13 @@ const MONTH_CHANGES = {
 const CURRENCY_SYMBOLS = { GBP: '£', USD: '$', EUR: '€' };
 
 function formatNumber(n) {
-  return n.toLocaleString();
+  return Number(n || 0).toLocaleString('en-US');
 }
 
 function formatCurrency(n, code) {
   const symbol = CURRENCY_SYMBOLS[code] || '';
   return (
-    symbol + n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})
+    symbol + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   );
 }
 

@@ -9,14 +9,14 @@ import { useSavedForecasts } from '../../lib/useSavedForecasts';
 const CURRENCY_SYMBOLS = { GBP: '£', USD: '$', EUR: '€' };
 
 function formatNumber(n) {
-  return n.toLocaleString();
+  return Number(n || 0).toLocaleString('en-US');
 }
 
 function formatCurrency(n, code) {
   const symbol = CURRENCY_SYMBOLS[code] || '';
   return (
     symbol +
-    n.toLocaleString(undefined, {
+    Number(n || 0).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })
@@ -85,7 +85,9 @@ export default function ViewForecast() {
       ? `/publisher-forecast?edit=${forecast.id}`
       : `/?edit=${forecast.id}`;
 
-  const GlobalView = () => (
+  const GlobalView = () => {
+    const total = results.total || {};
+    return (
     <table className="summary-table">
       <tbody>
         {publisher && (
@@ -96,15 +98,15 @@ export default function ViewForecast() {
         )}
         <tr>
           <th>Transaction Count</th>
-          <td>{formatNumber(Math.round(results.total.orders))}</td>
+          <td>{formatNumber(Math.round(total.orders || 0))}</td>
         </tr>
         <tr>
           <th>Revenue</th>
-          <td>{formatCurrency(results.total.revenue, results.currency || forecast.currency)}</td>
+          <td>{formatCurrency(total.revenue, results.currency || forecast.currency)}</td>
         </tr>
         <tr>
           <th>Total Cashback</th>
-          <td>{formatCurrency(results.total.cashback, results.currency || forecast.currency)}</td>
+          <td>{formatCurrency(total.cashback, results.currency || forecast.currency)}</td>
         </tr>
         {results.cashbackRates && (
           (() => {
@@ -124,12 +126,12 @@ export default function ViewForecast() {
         )}
         <tr>
           <th>Net Revenue</th>
-          <td>{formatCurrency(results.total.netRevenue, results.currency || forecast.currency)}</td>
+          <td>{formatCurrency(total.netRevenue, results.currency || forecast.currency)}</td>
         </tr>
-        {results.total.aov && (
+        {total.aov && (
           <tr>
             <th>Average Order Value</th>
-            <td>{formatCurrency(results.total.aov, results.currency || forecast.currency)}</td>
+            <td>{formatCurrency(total.aov, results.currency || forecast.currency)}</td>
           </tr>
         )}
         {forecast.inputs?.otherDetails && (
@@ -140,11 +142,12 @@ export default function ViewForecast() {
         )}
         <tr>
           <th>ROAS</th>
-          <td>{results.total.roas.toFixed(2)}x</td>
+          <td>{(total.roas || 0).toFixed(2)}x</td>
         </tr>
       </tbody>
     </table>
   );
+  };
 
   const OfferView = () => (
     results.offerBreakdown && (
