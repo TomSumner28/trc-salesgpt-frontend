@@ -46,7 +46,9 @@ export default function ViewForecast() {
     );
   }
 
-  const { type, retailer, publisher, manager, rep, results } = forecast;
+  const { type, retailer, publisher, manager, rep, results = {} } = forecast;
+  const monthLabels = results.monthLabels ||
+    (results.monthly ? results.monthly.map((_, i) => `Month ${i + 1}`) : []);
   const [view,setView] = useState('global');
   const [theme,setTheme] = useState('light');
   useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
@@ -232,7 +234,7 @@ export default function ViewForecast() {
         </div>
         <div ref={resultsRef}>
           <h2>
-            {retailer ? `${retailer} - ${forecast.inputs?.forecastLength || results.monthLabels.length} Month Forecast` : 'Forecast'}
+            {retailer ? `${retailer} - ${forecast.inputs?.forecastLength || monthLabels.length} Month Forecast` : 'Forecast'}
           </h2>
           {view==='global' && <GlobalView />}
           {view==='offer' && <OfferView />}
@@ -264,7 +266,7 @@ export default function ViewForecast() {
                 <thead>
                   <tr>
                     <th></th>
-                    {results.monthLabels.map((m, i) => (
+                    {monthLabels.map((m, i) => (
                       <th key={i}>{m}</th>
                     ))}
                     <th>Total</th>
