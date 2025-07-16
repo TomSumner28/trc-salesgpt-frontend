@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useSavedForecasts } from '../lib/useSavedForecasts';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const REGIONS = {
   UK: { reach: 5000000, currency: 'GBP' },
@@ -24,7 +26,7 @@ function formatCurrency(n, code) {
 }
 
 export default function Home() {
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
   const [retailer, setRetailer] = useState('');
   const [tier, setTier] = useState('1');
   const [regions, setRegions] = useState([]);
@@ -64,6 +66,17 @@ export default function Home() {
       results: result,
     });
     alert('Forecast saved');
+  };
+
+  const handleDownload = async () => {
+    if (!result) return;
+    const elem = document.querySelector('.results');
+    const canvas = await html2canvas(elem);
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ unit: 'px', format: 'a4' });
+    const ratio = Math.min(500 / canvas.width, 700 / canvas.height);
+    pdf.addImage(imgData, 'PNG', 40, 40, canvas.width * ratio, canvas.height * ratio);
+    pdf.save(`${retailer || 'forecast'}.pdf`);
   };
 
   return (
@@ -158,6 +171,9 @@ export default function Home() {
             </tbody>
           </table>
           <button type="button" onClick={handleSave}>Save Forecast</button>
+          <button type="button" onClick={handleDownload} style={{ marginLeft: 10 }}>
+            Download PDF
+          </button>
         </div>
       )}
     </div>

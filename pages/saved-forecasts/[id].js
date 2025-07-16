@@ -3,6 +3,8 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useSavedForecasts } from '../../lib/useSavedForecasts';
 import { useState, useEffect } from 'react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const SYMBOLS = { GBP: '£', USD: '$', EUR: '€' };
 
@@ -19,7 +21,7 @@ export default function SavedForecast() {
   const router = useRouter();
   const { id } = router.query;
   const [forecasts] = useSavedForecasts();
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
   useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
 
   if (!router.isReady || !forecasts) {
@@ -37,6 +39,19 @@ export default function SavedForecast() {
   }
 
   const { retailer, results } = fc;
+
+  const handleDownload = async () => {
+    const elem = document.querySelector('.results');
+    if (!elem) return;
+    const canvas = await html2canvas(elem);
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ unit: 'px', format: 'a4' });
+    const ratio = Math.min(500 / canvas.width, 700 / canvas.height);
+    const w = canvas.width * ratio;
+    const h = canvas.height * ratio;
+    pdf.addImage(imgData, 'PNG', 40, 40, w, h);
+    pdf.save(`${retailer || 'forecast'}.pdf`);
+  };
   return (
     <>
       <Head><title>Saved Forecast</title></Head>
@@ -64,6 +79,7 @@ export default function SavedForecast() {
               <tr><th>ROAS</th><td>{results.roas.toFixed(2)}x</td></tr>
             </tbody>
           </table>
+          <button type="button" onClick={handleDownload}>Download PDF</button>
         </div>
       </main>
     </>

@@ -25,4 +25,6 @@ The tool sums the reach for the selected regions and applies a conversion rate b
 3 → 0.025%
 ```
 
-Expected orders, revenue, total cashback and ROAS are displayed along with the appropriate currency symbol. After generating a forecast you can save it. Visit the **Saved Forecasts** page to view or delete previous entries.
+Expected orders, revenue, total cashback and ROAS are displayed along with the appropriate currency symbol.
+You can save a forecast to Supabase and later revisit it from the **Saved Forecasts** page.
+When viewing a saved forecast you can download a PDF summary of the results.
