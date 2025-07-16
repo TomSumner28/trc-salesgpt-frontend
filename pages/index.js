@@ -555,9 +555,9 @@ export default function Forecast() {
     pdf.save(fileName);
   };
 
-  const saveForecast = () => {
+  const saveForecast = async () => {
     if (!results) return;
-    addSavedForecast({
+    await addSavedForecast({
       type: 'forecast',
       retailer,
       rep,

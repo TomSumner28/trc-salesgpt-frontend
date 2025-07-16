@@ -295,9 +295,9 @@ export default function PublisherForecast() {
     pdf.save(`${retailer || 'forecast'}-publisher-forecast.pdf`);
   };
 
-  const saveForecast = () => {
+  const saveForecast = async () => {
     if (!results) return;
-    addSavedForecast({
+    await addSavedForecast({
       type: 'publisher',
       retailer,
       publisher,
