@@ -5,7 +5,7 @@ import { useSavedForecasts } from '../lib/useSavedForecasts';
 
 export default function SavedForecasts() {
   const [forecasts, , removeForecast] = useSavedForecasts();
-  const [theme,setTheme] = useState('light');
+  const [theme,setTheme] = useState('dark');
   useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
   if (!forecasts) {
     return (
@@ -22,9 +22,7 @@ export default function SavedForecasts() {
       <main className="container">
         <div className="top-bar">
           <div className="nav-links">
-            <Link href="/">Forecasting</Link>
-            <Link href="/publishers">Publishers</Link>
-            <Link href="/publisher-forecast">Publisher Forecasts</Link>
+            <Link href="/">Forecast</Link>
             <Link href="/saved-forecasts">Saved Forecasts</Link>
           </div>
           <div className="theme-switch">

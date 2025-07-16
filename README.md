@@ -1,6 +1,6 @@
 # TRC SalesGPT Frontend
 
-This is a small Next.js app that lets the sales team quickly estimate results for a cashback campaign.
+This is a small Next.js app that lets the sales team quickly estimate results for a cashback campaign. Forecasts can be saved to a Supabase backend so they can be revisited later.
 
 ## Getting started
 
@@ -25,6 +25,4 @@ The tool sums the reach for the selected regions and applies a conversion rate b
 3 → 0.025%
 ```
 
-Expected orders, revenue, total cashback and ROAS are displayed along with the appropriate currency symbol.
-
-Saved forecasts are stored in a Supabase table so the sales team can revisit results later.
+Expected orders, revenue, total cashback and ROAS are displayed along with the appropriate currency symbol. After generating a forecast you can save it. Visit the **Saved Forecasts** page to view or delete previous entries.

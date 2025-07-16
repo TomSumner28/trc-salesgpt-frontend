@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
+import { useSavedForecasts } from '../lib/useSavedForecasts';
 
 const REGIONS = {
   UK: { reach: 5000000, currency: 'GBP' },
@@ -22,12 +24,18 @@ function formatCurrency(n, code) {
 }
 
 export default function Home() {
+  const [theme, setTheme] = useState('dark');
   const [retailer, setRetailer] = useState('');
   const [tier, setTier] = useState('1');
   const [regions, setRegions] = useState([]);
   const [aov, setAov] = useState('');
   const [cashback, setCashback] = useState('');
   const [result, setResult] = useState(null);
+  const [forecasts, addForecast] = useSavedForecasts();
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   const toggleRegion = (r) => {
     setRegions((prev) =>
@@ -48,11 +56,31 @@ export default function Home() {
     setResult({ reach, orders, revenue, cashbackCost, roas, currency: mainCurrency });
   };
 
+  const handleSave = async () => {
+    if (!result) return;
+    await addForecast({
+      retailer,
+      inputs: { tier, regions, aov, cashback },
+      results: result,
+    });
+    alert('Forecast saved');
+  };
+
   return (
     <div className="container">
       <Head>
         <title>The Reward Collection Forecasting GPT</title>
       </Head>
+      <div className="top-bar">
+        <div className="nav-links">
+          <Link href="/saved-forecasts">Saved Forecasts</Link>
+        </div>
+        <div className="theme-switch">
+          <button type="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          </button>
+        </div>
+      </div>
       <h1>The Reward Collection Forecasting GPT</h1>
       <form onSubmit={calculate} className="form">
         <label className="full-width">
@@ -129,6 +157,7 @@ export default function Home() {
               </tr>
             </tbody>
           </table>
+          <button type="button" onClick={handleSave}>Save Forecast</button>
         </div>
       )}
     </div>
