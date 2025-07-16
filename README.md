@@ -26,3 +26,5 @@ The tool sums the reach for the selected regions and applies a conversion rate b
 ```
 
 Expected orders, revenue, total cashback and ROAS are displayed along with the appropriate currency symbol.
+
+Saved forecasts are stored in a Supabase table so the sales team can revisit results later.
