@@ -29,7 +29,7 @@ export default function ViewForecast() {
   const [forecasts] = useSavedForecasts();
   const resultsRef = useRef(null);
 
-  if (!router.isReady || !forecasts) {
+  if (!router.isReady || forecasts.length === 0) {
     return (
       <main className="container">
         <p>Loading...</p>
