@@ -5,9 +5,10 @@ import { useSavedForecasts } from '../lib/useSavedForecasts';
 
 export default function SavedForecasts() {
   const [forecasts, , removeForecast] = useSavedForecasts();
-  const [theme,setTheme] = useState('light');
-  useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
-
+  const [theme, setTheme] = useState('light');
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
   if (!forecasts) {
     return (
       <main className="container">
@@ -15,7 +16,6 @@ export default function SavedForecasts() {
       </main>
     );
   }
-
   return (
     <>
       <Head>
@@ -57,9 +57,9 @@ export default function SavedForecasts() {
                   </td>
                   <td>{new Date(f.savedAt).toLocaleString()}</td>
                   <td>
-                <button type="button" onClick={async () => await removeForecast(f.id)}>
-                  Delete
-                </button>
+                    <button type="button" onClick={() => removeForecast(f.id)}>
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
