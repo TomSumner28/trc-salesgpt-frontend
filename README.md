@@ -5,7 +5,11 @@ This project contains a small Next.js frontend for the TRC SalesGPT demo.
 ## Getting started
 
 1. Run `npm install` to install dependencies.
-2. Create a `.env` file with your `SUPABASE_KEY` so the app can store forecasts remotely.
+2. Create a `.env` file with your Supabase credentials:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://hwglmudfkjctsdnyutsp.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+   ```
 3. Use `npm run dev` to start the development server or `npm run build` to build for production.
 
 ## Features
@@ -15,4 +19,4 @@ This project contains a small Next.js frontend for the TRC SalesGPT demo.
 - High level metrics include a fixed **28% increase in basket spend** row alongside orders, revenue, cashback, net revenue and ROAS. The campaign metrics also list the cashback percentage used (or separate existing and new rates if tactical).
 - **Publisher manager** – Use the Publishers link to view, add or edit publisher entries that feed the automated reach numbers.
 - **Publisher forecasts** – Use the Publisher Forecasts page to enter real transaction count and revenue figures from partners. Tick **In-store Offer** to provide separate in‑store counts and revenue. Cashback is entered as a percentage so totals are calculated automatically. Results include AOV and ROAS and can cover a 3‑ or 6‑month period in any currency. The results dropdown lets you view totals by offer type or by channel, and the high level metrics list the cashback amounts **and the rates** for existing and new customers.
-- **Saved forecasts** – After calculating results you can save the current forecast. Entries are persisted to Supabase and listed on the Saved Forecasts page so anyone can review or delete them later.
+- **Saved forecasts** – After calculating results you can save the current forecast. Entries are persisted to Supabase (configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`) and listed on the Saved Forecasts page so anyone can review or delete them later.
