@@ -57,9 +57,9 @@ export default function SavedForecasts() {
                   </td>
                   <td>{new Date(f.savedAt).toLocaleString()}</td>
                   <td>
-                    <button type="button" onClick={() => removeForecast(f.id)}>
-                      Delete
-                    </button>
+                <button type="button" onClick={async () => await removeForecast(f.id)}>
+                  Delete
+                </button>
                   </td>
                 </tr>
               ))}
