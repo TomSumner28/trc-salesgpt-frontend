@@ -112,7 +112,7 @@ export default function Forecast() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!router.query.edit || !forecasts) return;
+    if (!router.query.edit || forecasts.length === 0) return;
     const f = forecasts.find((fc) => fc.id === Number(router.query.edit));
     if (f && f.inputs) {
       const inp = f.inputs;
@@ -555,9 +555,9 @@ export default function Forecast() {
     pdf.save(fileName);
   };
 
-  const saveForecast = async () => {
+  const saveForecast = () => {
     if (!results) return;
-    await addSavedForecast({
+    addSavedForecast({
       type: 'forecast',
       retailer,
       rep,

@@ -94,7 +94,7 @@ export default function PublisherForecast() {
   useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
 
   useEffect(() => {
-    if (!router.query.edit || !forecasts) return;
+    if (!router.query.edit || forecasts.length === 0) return;
     const f = forecasts.find((fc) => fc.id === Number(router.query.edit));
     if (f && f.inputs) {
       const inp = f.inputs;
@@ -295,9 +295,9 @@ export default function PublisherForecast() {
     pdf.save(`${retailer || 'forecast'}-publisher-forecast.pdf`);
   };
 
-  const saveForecast = async () => {
+  const saveForecast = () => {
     if (!results) return;
-    await addSavedForecast({
+    addSavedForecast({
       type: 'publisher',
       retailer,
       publisher,

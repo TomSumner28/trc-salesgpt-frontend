@@ -14,17 +14,4 @@ This project contains a small Next.js frontend for the TRC SalesGPT demo.
 - High level metrics include a fixed **28% increase in basket spend** row alongside orders, revenue, cashback, net revenue and ROAS. The campaign metrics also list the cashback percentage used (or separate existing and new rates if tactical).
 - **Publisher manager** – Use the Publishers link to view, add or edit publisher entries that feed the automated reach numbers.
 - **Publisher forecasts** – Use the Publisher Forecasts page to enter real transaction count and revenue figures from partners. Tick **In-store Offer** to provide separate in‑store counts and revenue. Cashback is entered as a percentage so totals are calculated automatically. Results include AOV and ROAS and can cover a 3‑ or 6‑month period in any currency. The results dropdown lets you view totals by offer type or by channel, and the high level metrics list the cashback amounts **and the rates** for existing and new customers.
-- **Saved forecasts** – After calculating results you can save the current forecast. Visit the Saved Forecasts page from the top bar to review or delete stored forecasts. Forecast data is persisted in a Supabase table so the whole team can revisit results.
-
-### Environment variables
-
-Create a `.env` file with your Microsoft OAuth details and Supabase credentials:
-
-```
-VITE_MICROSOFT_CLIENT_ID=your-client-id
-VITE_MICROSOFT_TENANT_ID=your-tenant-id
-VITE_MICROSOFT_REDIRECT_URI=https://your-backend/callback
-NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-```
-
+- **Saved forecasts** – After calculating results you can save the current forecast. Visit the Saved Forecasts page from the top bar to review or delete stored forecasts.

@@ -1,3 +1,4 @@
+
 {
   "name": "trc-salesgpt-frontend",
   "version": "1.0.0",
@@ -12,7 +13,6 @@
     "react": "latest",
     "react-dom": "latest",
     "html2canvas": "^1.4.1",
-    "jspdf": "^2.5.1",
-    "@supabase/supabase-js": "^2.39.8"
+    "jspdf": "^2.5.1"
   }
 }
