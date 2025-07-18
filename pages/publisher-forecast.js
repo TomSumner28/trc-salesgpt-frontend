@@ -2,8 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { useSavedForecasts } from '../lib/useSavedForecasts';
 
 const MANAGERS = ['tayla', 'laura'];
@@ -257,6 +255,8 @@ export default function PublisherForecast() {
 
   const downloadPdf = async () => {
     if (!resultsRef.current) return;
+    const html2canvas = (await import('html2canvas')).default;
+    const { default: jsPDF } = await import('jspdf');
     const viewToggle = resultsRef.current.querySelector('.view-toggle');
     const sliderRow = resultsRef.current.querySelector('.slider-row');
     const saveBtn = resultsRef.current.querySelector('.save-btn');

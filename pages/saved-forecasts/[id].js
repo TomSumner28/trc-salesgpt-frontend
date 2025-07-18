@@ -2,8 +2,6 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRef, useState, useEffect } from 'react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { useSavedForecasts } from '../../lib/useSavedForecasts';
 
 const CURRENCY_SYMBOLS = { GBP: '£', USD: '$', EUR: '€' };
@@ -56,6 +54,8 @@ export default function ViewForecast() {
 
   const downloadPdf = async () => {
     if (!resultsRef.current) return;
+    const html2canvas = (await import('html2canvas')).default;
+    const { default: jsPDF } = await import('jspdf');
     const viewToggle = resultsRef.current.querySelector('.view-toggle');
     const prevView = viewToggle ? viewToggle.style.display : '';
     if (viewToggle) viewToggle.style.display = 'none';

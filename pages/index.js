@@ -4,8 +4,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { usePublishers, computeReach } from '../lib/usePublishers';
 import { useSavedForecasts } from '../lib/useSavedForecasts';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
 const REGIONS = ['UK', 'US', 'EU'];
 const SALES_REPS = ['james', 'lucy', 'rebecca', 'ryan', 'preena', 'shamas', 'shaun'];
@@ -528,6 +526,8 @@ export default function Forecast() {
 
   const downloadPdf = async () => {
     if (!resultsRef.current) return;
+    const html2canvas = (await import('html2canvas')).default;
+    const { default: jsPDF } = await import('jspdf');
     const sliderRow = resultsRef.current.querySelector('.slider-row');
     const viewToggle = resultsRef.current.querySelector('.view-toggle');
     const prevSlider = sliderRow ? sliderRow.style.display : '';
