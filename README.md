@@ -15,6 +15,8 @@ Create a `.env` file with these values so the app can store forecasts in Supabas
 NEXT_PUBLIC_SUPABASE_URL=https://hwglmudfkjctsdnyutsp.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3Z2xtdWRma2pjdHNkbnl1dHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1OTcxNjAsImV4cCI6MjA2ODE3MzE2MH0.PGZv31POduuwyzbAR9G3pPjWRyBydn6t8Zo0Gi-Htdo
 ```
+If these variables are missing, forecasts stay only in your browser's
+localStorage.
 
 ### Supabase setup
 
