@@ -5,8 +5,16 @@ import { useSavedForecasts } from '../lib/useSavedForecasts';
 
 export default function SavedForecasts() {
   const [forecasts, , removeForecast, loaded] = useSavedForecasts();
-  const [theme,setTheme] = useState('light');
-  useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
+  const [theme, setTheme] = useState('light');
+  const [search, setSearch] = useState('');
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
+  const filtered = (forecasts || []).filter((f) =>
+    (f.retailer || f.publisher || '')
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
   return (
     <>
       <Head>
@@ -29,35 +37,47 @@ export default function SavedForecasts() {
         <h1>Saved Forecasts</h1>
         {!loaded ? (
           <p>Loading...</p>
-        ) : forecasts.length === 0 ? (
-          <p>No saved forecasts.</p>
         ) : (
-          <table className="monthly-table">
-            <thead>
-              <tr>
-                <th>Retailer/Publisher</th>
-                <th>Date Saved</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {forecasts.map((f) => (
-                <tr key={f.id}>
-                  <td>
-                    <Link className="row-link" href={`/saved-forecasts/${f.id}`}>
-                      {f.retailer || f.publisher || 'Forecast'}
-                    </Link>
-                  </td>
-                  <td>{new Date(f.savedAt).toLocaleString()}</td>
-                  <td>
-                    <button type="button" onClick={() => removeForecast(f.id)}>
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <>
+            <div style={{ marginBottom: '1rem' }}>
+              <input
+                type="text"
+                placeholder="Search forecasts"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            {filtered.length === 0 ? (
+              <p>No saved forecasts.</p>
+            ) : (
+              <table className="monthly-table">
+                <thead>
+                  <tr>
+                    <th>Retailer/Publisher</th>
+                    <th>Date Saved</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((f) => (
+                    <tr key={f.id}>
+                      <td>
+                        <Link className="row-link" href={`/saved-forecasts/${f.id}`}>
+                          {f.retailer || f.publisher || 'Forecast'}
+                        </Link>
+                      </td>
+                      <td>{new Date(f.savedAt).toLocaleString()}</td>
+                      <td>
+                        <button type="button" onClick={() => removeForecast(f.id)}>
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </>
         )}
       </main>
     </>
