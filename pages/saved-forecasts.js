@@ -48,7 +48,7 @@ export default function SavedForecasts() {
                       {f.retailer || f.publisher || 'Forecast'}
                     </Link>
                   </td>
-                  <td>{new Date(f.saved_at).toLocaleString()}</td>
+                  <td>{new Date(f.savedAt).toLocaleString()}</td>
                   <td>
                     <button type="button" onClick={() => removeForecast(f.id)}>
                       Delete
