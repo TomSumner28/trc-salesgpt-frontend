@@ -16,6 +16,27 @@ NEXT_PUBLIC_SUPABASE_URL=https://hwglmudfkjctsdnyutsp.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3Z2xtdWRma2pjdHNkbnl1dHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1OTcxNjAsImV4cCI6MjA2ODE3MzE2MH0.PGZv31POduuwyzbAR9G3pPjWRyBydn6t8Zo0Gi-Htdo
 ```
 
+### Supabase setup
+
+Before running the app you need a `forecasts` table in Supabase. Create the table
+with the columns below so the frontend can store and load saved forecasts:
+
+```
+id         bigint primary key,
+created_at timestamptz default now(),
+type       text,
+retailer   text,
+publisher  text,
+manager    text,
+rep        text,
+inputs     jsonb,
+results    jsonb,
+currency   text
+```
+
+`type` is either `retailer` or `publisher` and the JSON columns hold the input
+values and calculated results for each forecast.
+
 ## Features
 
 - **Forecasting tool** – The homepage hosts **The Reward Collection Forecasting Tool**. Select the sales rep, choose multiple regions and tier, pick a starting month, and enter cashback rates. Tick **In-store Offer** if the campaign includes stores. Reach for each region auto-fills from publisher data and is halved to reflect realistic campaign performance. When a campaign is new‑customer only, reach is first limited to publishers that support new customers before the 50% reduction. Results include a six-month growth curve with tables showing revenue, total cashback, **net revenue** and sales, and the month headers reflect the chosen start month. Currency is chosen automatically (GBP for UK, USD for US, EUR for EU or whichever region contributes the most sales). The results heading displays the retailer name followed by "6-Month Forecast". The interface loads in light mode by default, with a toggle at the top right to switch to dark mode. A **Download PDF** button saves the forecast without the view controls and includes a note from the chosen sales rep. When an in-store offer is provided, another table splits results by channel and appears in the **View All** display.
