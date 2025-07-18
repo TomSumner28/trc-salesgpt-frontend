@@ -558,8 +558,10 @@ export default function Forecast() {
   const saveForecast = () => {
     if (!results) return;
     addSavedForecast({
-      type: 'forecast',
+      type: 'retailer',
       retailer,
+      publisher: '',
+      manager: '',
       rep,
       inputs: {
         retailer,
@@ -576,6 +578,7 @@ export default function Forecast() {
         reach,
       },
       results,
+      currency: results.currency,
     });
     alert('Forecast saved');
   };
