@@ -26,6 +26,12 @@ export default function ViewForecast() {
   const { id } = router.query;
   const [forecasts, , , loaded] = useSavedForecasts();
   const resultsRef = useRef(null);
+  const [view, setView] = useState('global');
+  const [theme, setTheme] = useState('light');
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   if (!router.isReady || !loaded) {
     return (
@@ -46,11 +52,9 @@ export default function ViewForecast() {
   }
 
   const { type, retailer, publisher, manager, rep, results = {} } = forecast;
-  const monthLabels = results.monthLabels ||
+  const monthLabels =
+    results.monthLabels ||
     (results.monthly ? results.monthly.map((_, i) => `Month ${i + 1}`) : []);
-  const [view,setView] = useState('global');
-  const [theme,setTheme] = useState('light');
-  useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
 
   const downloadPdf = async () => {
     if (!resultsRef.current) return;
