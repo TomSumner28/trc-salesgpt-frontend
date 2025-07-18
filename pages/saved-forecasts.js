@@ -5,17 +5,8 @@ import { useSavedForecasts } from '../lib/useSavedForecasts';
 
 export default function SavedForecasts() {
   const [forecasts, , removeForecast] = useSavedForecasts();
-  const [theme, setTheme] = useState('light');
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
-  if (!forecasts) {
-    return (
-      <main className="container">
-        <p>Loading...</p>
-      </main>
-    );
-  }
+  const [theme,setTheme] = useState('light');
+  useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
   return (
     <>
       <Head>
