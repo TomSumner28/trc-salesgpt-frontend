@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSavedForecasts } from '../lib/useSavedForecasts';
 
 export default function SavedForecasts() {
-  const [forecasts, , removeForecast] = useSavedForecasts();
+  const [forecasts, , removeForecast, loaded] = useSavedForecasts();
   const [theme,setTheme] = useState('light');
   useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
   return (
@@ -27,7 +27,9 @@ export default function SavedForecasts() {
           </div>
         </div>
         <h1>Saved Forecasts</h1>
-        {forecasts.length === 0 ? (
+        {!loaded ? (
+          <p>Loading...</p>
+        ) : forecasts.length === 0 ? (
           <p>No saved forecasts.</p>
         ) : (
           <table className="monthly-table">
@@ -46,7 +48,7 @@ export default function SavedForecasts() {
                       {f.retailer || f.publisher || 'Forecast'}
                     </Link>
                   </td>
-                  <td>{new Date(f.savedAt).toLocaleString()}</td>
+                  <td>{new Date(f.saved_at).toLocaleString()}</td>
                   <td>
                     <button type="button" onClick={() => removeForecast(f.id)}>
                       Delete

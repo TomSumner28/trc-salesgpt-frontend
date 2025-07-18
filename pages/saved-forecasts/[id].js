@@ -26,10 +26,10 @@ function formatCurrency(n, code) {
 export default function ViewForecast() {
   const router = useRouter();
   const { id } = router.query;
-  const [forecasts] = useSavedForecasts();
+  const [forecasts, , , loaded] = useSavedForecasts();
   const resultsRef = useRef(null);
 
-  if (!router.isReady || forecasts.length === 0) {
+  if (!router.isReady || !loaded) {
     return (
       <main className="container">
         <p>Loading...</p>

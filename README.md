@@ -7,6 +7,15 @@ This project contains a small Next.js frontend for the TRC SalesGPT demo.
 1. Run `npm install` to install dependencies.
 2. Use `npm run dev` to start the development server or `npm run build` to build for production.
 
+### Environment variables
+
+Create a `.env` file with these values so the app can store forecasts in Supabase:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://hwglmudfkjctsdnyutsp.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3Z2xtdWRma2pjdHNkbnl1dHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1OTcxNjAsImV4cCI6MjA2ODE3MzE2MH0.PGZv31POduuwyzbAR9G3pPjWRyBydn6t8Zo0Gi-Htdo
+```
+
 ## Features
 
 - **Forecasting tool** – The homepage hosts **The Reward Collection Forecasting Tool**. Select the sales rep, choose multiple regions and tier, pick a starting month, and enter cashback rates. Tick **In-store Offer** if the campaign includes stores. Reach for each region auto-fills from publisher data and is halved to reflect realistic campaign performance. When a campaign is new‑customer only, reach is first limited to publishers that support new customers before the 50% reduction. Results include a six-month growth curve with tables showing revenue, total cashback, **net revenue** and sales, and the month headers reflect the chosen start month. Currency is chosen automatically (GBP for UK, USD for US, EUR for EU or whichever region contributes the most sales). The results heading displays the retailer name followed by "6-Month Forecast". The interface loads in light mode by default, with a toggle at the top right to switch to dark mode. A **Download PDF** button saves the forecast without the view controls and includes a note from the chosen sales rep. When an in-store offer is provided, another table splits results by channel and appears in the **View All** display.
@@ -14,4 +23,4 @@ This project contains a small Next.js frontend for the TRC SalesGPT demo.
 - High level metrics include a fixed **28% increase in basket spend** row alongside orders, revenue, cashback, net revenue and ROAS. The campaign metrics also list the cashback percentage used (or separate existing and new rates if tactical).
 - **Publisher manager** – Use the Publishers link to view, add or edit publisher entries that feed the automated reach numbers.
 - **Publisher forecasts** – Use the Publisher Forecasts page to enter real transaction count and revenue figures from partners. Tick **In-store Offer** to provide separate in‑store counts and revenue. Cashback is entered as a percentage so totals are calculated automatically. Results include AOV and ROAS and can cover a 3‑ or 6‑month period in any currency. The results dropdown lets you view totals by offer type or by channel, and the high level metrics list the cashback amounts **and the rates** for existing and new customers.
-- **Saved forecasts** – After calculating results you can save the current forecast. Visit the Saved Forecasts page from the top bar to review or delete stored forecasts.
+- **Saved forecasts** – After calculating results you can save the current forecast. Forecasts are stored in Supabase so anyone can revisit them later. Visit the Saved Forecasts page from the top bar to review or delete saved entries.
