@@ -174,6 +174,14 @@ export default function Forecast() {
     <table className="summary-table">
       <tbody>
         <tr>
+          <th>Total Reach</th>
+          <td>{formatNumber(Math.round(results.total.baseReach))}</td>
+        </tr>
+        <tr>
+          <th>Adjusted Reach (50%)</th>
+          <td>{formatNumber(Math.round(results.total.reach))}</td>
+        </tr>
+        <tr>
           <th>Expected Orders</th>
           <td>{formatNumber(Math.round(results.total.orders))}</td>
         </tr>
@@ -351,11 +359,19 @@ export default function Forecast() {
     const newCb = parseFloat(cashbackNew) || 0;
 
     const perRegion = {};
+    let totalBaseReach = 0;
+    let totalAdjustedReach = 0;
     let totalOrders = 0;
     let onlineOrdersTotal = 0;
     let instoreOrdersTotal = 0;
+    const newOnly =
+      parseFloat(cashbackNew) > 0 &&
+      (!cashbackExisting || parseFloat(cashbackExisting) === 0);
     regions.forEach((r) => {
+      const base = computeReach(publishers, r, newOnly);
       const regionReach = parseInt(reach[r], 10) || 0;
+      totalBaseReach += base;
+      totalAdjustedReach += regionReach;
       let onlineOrders = 0;
       let instoreOrders = 0;
       if (online && instore) {
@@ -505,6 +521,8 @@ export default function Forecast() {
 
     setResults({
       total: {
+        baseReach: totalBaseReach,
+        reach: totalAdjustedReach,
         orders: totalOrders,
         revenue,
         cashback: cashbackAmount,
