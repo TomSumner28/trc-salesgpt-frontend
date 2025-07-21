@@ -39,6 +39,7 @@ export default function Publishers() {
               <th>Status</th>
               <th>Regions</th>
               <th>Reach</th>
+              <th>New Customers</th>
             </tr>
           </thead>
           <tbody>
@@ -49,6 +50,7 @@ export default function Publishers() {
                 <td>{p.status}</td>
                 <td>{Array.isArray(p.regions) ? p.regions.join(', ') : p.regions}</td>
                 <td>{p.reach ? p.reach.toLocaleString() : ''}</td>
+                <td>{p.newCustomers ? 'Yes' : 'No'}</td>
               </tr>
             ))}
           </tbody>
