@@ -2,8 +2,6 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRef, useState, useEffect } from 'react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { useSavedForecasts } from '../../lib/useSavedForecasts';
 
 const CURRENCY_SYMBOLS = { GBP: '£', USD: '$', EUR: '€' };
@@ -28,6 +26,12 @@ export default function ViewForecast() {
   const { id } = router.query;
   const [forecasts] = useSavedForecasts();
   const resultsRef = useRef(null);
+  const [view, setView] = useState('global');
+  const [theme, setTheme] = useState('light');
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   if (!router.isReady || !forecasts) {
     return (
@@ -48,19 +52,23 @@ export default function ViewForecast() {
   }
 
   const { type, retailer, publisher, manager, rep, results = {} } = forecast;
-  const monthLabels = results.monthLabels ||
+  const monthLabels =
+    results.monthLabels ||
     (results.monthly ? results.monthly.map((_, i) => `Month ${i + 1}`) : []);
-  const [view,setView] = useState('global');
-  const [theme,setTheme] = useState('light');
-  useEffect(()=>{document.documentElement.dataset.theme = theme;},[theme]);
 
   const downloadPdf = async () => {
     if (!resultsRef.current) return;
+    const html2canvas = (await import('html2canvas')).default;
+    const { default: jsPDF } = await import('jspdf');
     const viewToggle = resultsRef.current.querySelector('.view-toggle');
+    const trcRows = resultsRef.current.querySelectorAll('.trc-row');
     const prevView = viewToggle ? viewToggle.style.display : '';
+    const prevTrc = Array.from(trcRows).map((r) => r.style.display);
     if (viewToggle) viewToggle.style.display = 'none';
+    trcRows.forEach((r) => (r.style.display = 'none'));
     const canvas = await html2canvas(resultsRef.current);
     if (viewToggle) viewToggle.style.display = prevView;
+    trcRows.forEach((r, i) => (r.style.display = prevTrc[i]));
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -129,6 +137,18 @@ export default function ViewForecast() {
           <th>Net Revenue</th>
           <td>{formatCurrency(total.netRevenue, results.currency || forecast.currency)}</td>
         </tr>
+        {results.trcRevenue && (
+          <>
+            <tr className="trc-row">
+              <th>TRC Revenue Existing</th>
+              <td>{formatCurrency(results.trcRevenue.existing, results.currency || forecast.currency)}</td>
+            </tr>
+            <tr className="trc-row">
+              <th>TRC Revenue New</th>
+              <td>{formatCurrency(results.trcRevenue.new, results.currency || forecast.currency)}</td>
+            </tr>
+          </>
+        )}
         {total.aov && (
           <tr>
             <th>Average Order Value</th>
