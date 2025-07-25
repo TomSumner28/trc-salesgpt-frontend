@@ -25,7 +25,22 @@ const MONTH_CHANGES = {
 
 const CURRENCY_SYMBOLS = { GBP: '£', USD: '$', EUR: '€' };
 
-const TRC_MARGIN = 0.2; // portion of cashback retained as revenue
+function calcTrcMargin(rate){
+  const r=parseFloat(rate);
+  if(Number.isNaN(r)) return 0;
+  const pct=r>1?r/100:r;
+  if(pct>0.04&&pct<0.08) return 0.02;
+  if(pct>0.07&&pct<0.11) return 0.03;
+  if(pct>0.1&&pct<0.16) return 0.05;
+  if(pct>0.15&&pct<0.21) return 0.06;
+  if(pct>0.2&&pct<0.26) return 0.08;
+  if(pct>0.25&&pct<0.31) return 0.1;
+  if(pct>0.3&&pct<0.41) return 0.12;
+  if(pct>0.4&&pct<0.51) return 0.15;
+  if(pct>0.5) return 0.2;
+  if(pct<0.05) return 0.01;
+  return 0;
+}
 
 const NUM_FORMAT = new Intl.NumberFormat('en-US');
 
@@ -237,14 +252,17 @@ export default function PublisherForecast() {
     let trcExisting=0, trcNew=0;
     if(mode==='always'){
       const cbPct=parseFloat(allCashback)||0;
-      trcExisting=revenue*(cbPct/100)*TRC_MARGIN;
+      const margin=calcTrcMargin(cbPct);
+      trcExisting=revenue*(cbPct/100)*margin;
     }else{
       const exRev=parseFloat(existingRevenue)||0;
       const nwRev=parseFloat(newRevenue)||0;
       const exPct=parseFloat(existingCashback)||0;
       const nwPct=parseFloat(newCashback)||0;
-      trcExisting=exRev*(exPct/100)*TRC_MARGIN;
-      trcNew=nwRev*(nwPct/100)*TRC_MARGIN;
+      const exMargin=calcTrcMargin(exPct);
+      const nwMargin=calcTrcMargin(nwPct);
+      trcExisting=exRev*(exPct/100)*exMargin;
+      trcNew=nwRev*(nwPct/100)*nwMargin;
     }
     const cashbackRates =
       mode === 'always'

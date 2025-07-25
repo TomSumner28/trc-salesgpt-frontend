@@ -62,7 +62,22 @@ const REGION_CURRENCIES = {
   EU: 'EUR',
 };
 
-const TRC_MARGIN = 0.2; // portion of cashback retained as revenue
+function calcTrcMargin(rate) {
+  const r = parseFloat(rate);
+  if (Number.isNaN(r)) return 0;
+  const pct = r > 1 ? r / 100 : r;
+  if (pct > 0.04 && pct < 0.08) return 0.02;
+  if (pct > 0.07 && pct < 0.11) return 0.03;
+  if (pct > 0.1 && pct < 0.16) return 0.05;
+  if (pct > 0.15 && pct < 0.21) return 0.06;
+  if (pct > 0.2 && pct < 0.26) return 0.08;
+  if (pct > 0.25 && pct < 0.31) return 0.1;
+  if (pct > 0.3 && pct < 0.41) return 0.12;
+  if (pct > 0.4 && pct < 0.51) return 0.15;
+  if (pct > 0.5) return 0.2;
+  if (pct < 0.05) return 0.01;
+  return 0;
+}
 
 const CURRENCY_SYMBOLS = {
   GBP: '£',
@@ -529,9 +544,11 @@ export default function Forecast() {
     });
     const currency = REGION_CURRENCIES[bestRegion] || 'GBP';
 
+    const marginExisting = calcTrcMargin(existingCb);
+    const marginNew = calcTrcMargin(newCb);
     const trcExisting =
-      existingOrders * aovNum * (existingCb / 100) * TRC_MARGIN;
-    const trcNew = newOrders * aovNum * (newCb / 100) * TRC_MARGIN;
+      existingOrders * aovNum * (existingCb / 100) * marginExisting;
+    const trcNew = newOrders * aovNum * (newCb / 100) * marginNew;
 
     setResults({
       total: {
