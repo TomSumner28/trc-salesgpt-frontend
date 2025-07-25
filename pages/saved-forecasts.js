@@ -15,6 +15,13 @@ export default function SavedForecasts() {
       .toLowerCase()
       .includes(search.toLowerCase())
   );
+  if (!forecasts) {
+    return (
+      <main className="container">
+        <p>Loading...</p>
+      </main>
+    );
+  }
   return (
     <>
       <Head>

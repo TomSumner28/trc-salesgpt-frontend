@@ -33,7 +33,7 @@ export default function ViewForecast() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
-  if (!router.isReady || forecasts.length === 0) {
+  if (!router.isReady || !forecasts) {
     return (
       <main className="container">
         <p>Loading...</p>
