@@ -245,14 +245,6 @@ export default function Forecast() {
             {formatCurrency(results.total.netRevenue, results.currency)}
           </td>
         </tr>
-        <tr className="trc-row">
-          <th>TRC Revenue Existing</th>
-          <td>{formatCurrency(results.trcRevenue.existing, results.currency)}</td>
-        </tr>
-        <tr className="trc-row">
-          <th>TRC Revenue New</th>
-          <td>{formatCurrency(results.trcRevenue.new, results.currency)}</td>
-        </tr>
         <tr>
           <th>Increase in Basket Spend</th>
           <td>28%</td>
@@ -498,6 +490,10 @@ export default function Forecast() {
     const shares = factors.map((f) => f / sumFactors);
     setBaseShares(shares);
     setWeights(Array(6).fill(1));
+
+    const marginExisting = calcTrcMargin(existingCb);
+    const marginNew = calcTrcMargin(newCb);
+
     const adjShares = computeMonthlyShares(shares, Array(6).fill(1));
     const monthly = adjShares.map((s) => {
       const monthOrders = totalOrders * s;
@@ -506,11 +502,17 @@ export default function Forecast() {
       const monthRevenue = monthOrders * aovNum;
       const monthCashback =
         monthOrders * aovNum * ((existingCb * exRatio + newCb * nwRatio) / 100);
+      const monthTrcExisting =
+        monthOrders * exRatio * aovNum * (existingCb / 100) * marginExisting;
+      const monthTrcNew =
+        monthOrders * nwRatio * aovNum * (newCb / 100) * marginNew;
       return {
         orders: monthOrders,
         revenue: monthRevenue,
         cashback: monthCashback,
         netRevenue: monthRevenue - monthCashback,
+        trcExisting: monthTrcExisting,
+        trcNew: monthTrcNew,
       };
     });
 
@@ -543,9 +545,6 @@ export default function Forecast() {
       }
     });
     const currency = REGION_CURRENCIES[bestRegion] || 'GBP';
-
-    const marginExisting = calcTrcMargin(existingCb);
-    const marginNew = calcTrcMargin(newCb);
     const trcExisting =
       existingOrders * aovNum * (existingCb / 100) * marginExisting;
     const trcNew = newOrders * aovNum * (newCb / 100) * marginNew;
@@ -863,10 +862,10 @@ export default function Forecast() {
               </thead>
               <tbody>
                 {(() => {
-                  const makeRow = (label, arr, formatter) => {
+                  const makeRow = (label, arr, formatter, className) => {
                     const total = arr.reduce((a, b) => a + b, 0);
                     return (
-                      <tr>
+                      <tr className={className}>
                         <td>{label}</td>
                         {arr.map((v, i) => (
                           <td key={i}>{formatter(v)}</td>
@@ -896,6 +895,18 @@ export default function Forecast() {
                         'Net Revenue',
                         results.monthly.map((m) => m.netRevenue),
                         (v) => formatCurrency(v, results.currency)
+                      )}
+                      {makeRow(
+                        'TRC Revenue Existing',
+                        results.monthly.map((m) => m.trcExisting),
+                        (v) => formatCurrency(v, results.currency),
+                        'trc-row'
+                      )}
+                      {makeRow(
+                        'TRC Revenue New',
+                        results.monthly.map((m) => m.trcNew),
+                        (v) => formatCurrency(v, results.currency),
+                        'trc-row'
                       )}
                     </>
                   );
