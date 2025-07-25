@@ -24,7 +24,7 @@ function formatCurrency(n, code) {
 export default function ViewForecast() {
   const router = useRouter();
   const { id } = router.query;
-  const [forecasts, , , loaded] = useSavedForecasts();
+  const [forecasts] = useSavedForecasts();
   const resultsRef = useRef(null);
   const [view, setView] = useState('global');
   const [theme, setTheme] = useState('light');
@@ -33,7 +33,7 @@ export default function ViewForecast() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
-  if (!router.isReady || !loaded) {
+  if (!router.isReady || forecasts.length === 0) {
     return (
       <main className="container">
         <p>Loading...</p>

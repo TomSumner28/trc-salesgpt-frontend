@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSavedForecasts } from '../lib/useSavedForecasts';
 
 export default function SavedForecasts() {
-  const [forecasts, , removeForecast, loaded] = useSavedForecasts();
+  const [forecasts, , removeForecast] = useSavedForecasts();
   const [theme, setTheme] = useState('light');
   const [search, setSearch] = useState('');
   useEffect(() => {
@@ -35,10 +35,7 @@ export default function SavedForecasts() {
           </div>
         </div>
         <h1>Saved Forecasts</h1>
-        {!loaded ? (
-          <p>Loading...</p>
-        ) : (
-          <>
+        <>
             <div style={{ marginBottom: '1rem' }}>
               <input
                 type="text"
@@ -78,7 +75,6 @@ export default function SavedForecasts() {
               </table>
             )}
           </>
-        )}
       </main>
     </>
   );

@@ -9,35 +9,15 @@ This project contains a small Next.js frontend for the TRC SalesGPT demo.
 
 ### Environment variables
 
-Create a `.env` file with these values so the app can store forecasts in Supabase:
+Create a `.env` file with these values if you want to load publisher data from
+Supabase:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://hwglmudfkjctsdnyutsp.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3Z2xtdWRma2pjdHNkbnl1dHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1OTcxNjAsImV4cCI6MjA2ODE3MzE2MH0.PGZv31POduuwyzbAR9G3pPjWRyBydn6t8Zo0Gi-Htdo
 ```
-If these variables are missing, forecasts stay only in your browser's
-localStorage.
-
-### Supabase setup
-
-Before running the app you need a `forecasts` table in Supabase. Create the table
-with the columns below so the frontend can store and load saved forecasts:
-
-```
-id         bigint primary key,
-created_at timestamptz default now(),
-type       text,
-retailer   text,
-publisher  text,
-manager    text,
-rep        text,
-inputs     jsonb,
-results    jsonb,
-currency   text
-```
-
-`type` is either `retailer` or `publisher` and the JSON columns hold the input
-values and calculated results for each forecast.
+If these variables are missing the publishers list will be empty, but forecasts
+still save locally in your browser.
 
 ## Features
 
@@ -47,4 +27,4 @@ values and calculated results for each forecast.
 - TRC revenue for new and existing customers appears in the month-by-month table so you can see revenue each month. These rows are hidden when exporting to PDF.
 - **Publishers page** – The Publishers link shows reach, new‑customer capability and region data loaded from Supabase. The list is read‑only and feeds the automated reach numbers. Ensure your Supabase project includes a table named `publishers` (or `publisher`, sometimes `Publishers`) with columns `Network_Publishers`, `Sub_Publishers`, `Status`, `Regions`, `Reach` and `New_Customers`. `Reach` values can include commas and are converted to numbers automatically. Region names such as "USA" or "Europe" are recognised and normalised to `US` and `EU` automatically.
 - **Publisher forecasts** – Use the Publisher Forecasts page to enter real transaction count and revenue figures from partners. Tick **In-store Offer** to provide separate in‑store counts and revenue. Cashback is entered as a percentage so totals are calculated automatically. Results include AOV and ROAS and can cover a 3‑ or 6‑month period in any currency. The results dropdown lets you view totals by offer type or by channel, and the high level metrics list the cashback amounts **and the rates** for existing and new customers.
-- **Saved forecasts** – After calculating results you can save the current forecast. Forecasts are stored in Supabase so anyone can revisit them later. Visit the Saved Forecasts page from the top bar to review entries. A search box lets you quickly filter the list, and the **Delete** button removes a forecast from both the list and the Supabase table.
+- **Saved forecasts** – After calculating results you can save the current forecast. Entries are stored in your browser so you can return later to review, delete or download them again. The Saved Forecasts page includes a search box for quickly filtering the list.
