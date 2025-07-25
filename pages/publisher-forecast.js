@@ -93,13 +93,9 @@ export default function PublisherForecast() {
   const [newRevenue,setNewRevenue] = useState('');
   const [newCashback,setNewCashback] = useState('');
   const [otherDetails,setOtherDetails] = useState('');
-  const [trcMargin,setTrcMargin] = useState('');
-  const [trcMarginExisting,setTrcMarginExisting] = useState('');
-  const [trcMarginNew,setTrcMarginNew] = useState('');
   const [results,setResults] = useState(null);
   const [view,setView] = useState('global');
   const [theme,setTheme] = useState('light');
-  const [showTrc,setShowTrc] = useState(false);
   const [baseShares,setBaseShares] = useState([]);
   const [weights,setWeights] = useState([]);
   const resultsRef = useRef(null);
@@ -133,9 +129,6 @@ export default function PublisherForecast() {
       setNewRevenue(inp.newRevenue || '');
       setNewCashback(inp.newCashback || '');
       setOtherDetails(inp.otherDetails || '');
-      setTrcMargin(inp.trcMargin || '');
-      setTrcMarginExisting(inp.trcMarginExisting || '');
-      setTrcMarginNew(inp.trcMarginNew || '');
       if (f.results) setResults(f.results);
     }
   }, [router.query.edit, forecasts]);
@@ -146,26 +139,44 @@ export default function PublisherForecast() {
     const revenue = results.total.revenue;
     const cashback = results.total.cashback;
     const shares = computeMonthlyShares(baseShares,weights);
-    const monthly = shares.map(s=>({
-      orders: orders*s,
-      revenue: revenue*s,
-      cashback: cashback*s,
-      netRevenue: revenue*s - cashback*s,
+    const monthly = shares.map((s) => ({
+      orders: orders * s,
+      revenue: revenue * s,
+      cashback: cashback * s,
+      netRevenue: revenue * s - cashback * s,
     }));
-    const trc = shares.map((s,i)=>{
-      if(mode==='always'){
-        const m=parseFloat(trcMargin)||0;
-        return revenue*s*(m/100);
-      }else{
-        const exRev=parseFloat(existingRevenue)||0;
-        const nwRev=parseFloat(newRevenue)||0;
-        const mE=parseFloat(trcMarginExisting)||0;
-        const mN=parseFloat(trcMarginNew)||0;
-        return exRev*s*(mE/100)+nwRev*s*(mN/100);
+    const trc = shares.map((s) => {
+      if (mode === 'always') {
+        const cbPct = parseFloat(allCashback) || 0;
+        const margin = calcTrcMargin(cbPct);
+        return revenue * s * (cbPct / 100) * margin;
       }
+      const exRev = parseFloat(existingRevenue) || 0;
+      const nwRev = parseFloat(newRevenue) || 0;
+      const exPct = parseFloat(existingCashback) || 0;
+      const nwPct = parseFloat(newCashback) || 0;
+      const exMargin = calcTrcMargin(exPct);
+      const nwMargin = calcTrcMargin(nwPct);
+      return (
+        exRev * s * (exPct / 100) * exMargin + nwRev * s * (nwPct / 100) * nwMargin
+      );
     });
-    setResults(prev=>({...prev,monthly,trcMonthly:trc,trcRevenue:trc.reduce((a,b)=>a+b,0)}));
-  },[weights,trcMargin,trcMarginExisting,trcMarginNew]);
+    setResults((prev) => ({
+      ...prev,
+      monthly,
+      trcMonthly: trc,
+      trcRevenue: trc.reduce((a, b) => a + b, 0),
+    }));
+  }, [
+    weights,
+    baseShares,
+    mode,
+    allCashback,
+    existingRevenue,
+    newRevenue,
+    existingCashback,
+    newCashback,
+  ]);
 
   const updateWeight = (idx,val)=>{
     setWeights(prev=>{const next=[...prev]; next[idx]=val; return next;});
@@ -294,27 +305,19 @@ export default function PublisherForecast() {
     const viewToggle = resultsRef.current.querySelector('.view-toggle');
     const sliderRow = resultsRef.current.querySelector('.slider-row');
     const saveBtn = resultsRef.current.querySelector('.save-btn');
-    const trcSection = resultsRef.current.querySelector('.trc-section');
-    const trcBtn = resultsRef.current.querySelector('.trc-toggle-btn');
     const trcRows = resultsRef.current.querySelectorAll('.trc-row');
     const prevView = viewToggle ? viewToggle.style.display : '';
     const prevSlider = sliderRow ? sliderRow.style.display : '';
     const prevSave = saveBtn ? saveBtn.style.display : '';
-    const prevTrc = trcSection ? trcSection.style.display : '';
-    const prevTrcBtn = trcBtn ? trcBtn.style.display : '';
     const prevRow = Array.from(trcRows).map((r) => r.style.display);
     if (viewToggle) viewToggle.style.display = 'none';
     if (sliderRow) sliderRow.style.display = 'none';
     if (saveBtn) saveBtn.style.display = 'none';
-    if (trcSection) trcSection.style.display = 'none';
-    if (trcBtn) trcBtn.style.display = 'none';
     trcRows.forEach((r) => (r.style.display = 'none'));
     const canvas = await html2canvas(resultsRef.current);
     if (viewToggle) viewToggle.style.display = prevView;
     if (sliderRow) sliderRow.style.display = prevSlider;
     if (saveBtn) saveBtn.style.display = prevSave;
-    if (trcSection) trcSection.style.display = prevTrc;
-    if (trcBtn) trcBtn.style.display = prevTrcBtn;
     trcRows.forEach((r, i) => (r.style.display = prevRow[i]));
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -361,9 +364,6 @@ export default function PublisherForecast() {
         newRevenue,
         newCashback,
         otherDetails,
-        trcMargin,
-        trcMarginExisting,
-        trcMarginNew,
       },
       results,
     });
@@ -627,62 +627,19 @@ export default function PublisherForecast() {
               </thead>
               <tbody>
                 {(()=>{
-                  const makeRow=(label,arr,fmt)=>{const tot=arr.reduce((a,b)=>a+b,0);return (<tr><td>{label}</td>{arr.map((v,i)=>(<td key={i}>{fmt(v)}</td>))}<td>{fmt(tot)}</td></tr>);};
+                  const makeRow=(label,arr,fmt,className)=>{const tot=arr.reduce((a,b)=>a+b,0);return (<tr className={className}><td>{label}</td>{arr.map((v,i)=>(<td key={i}>{fmt(v)}</td>))}<td>{fmt(tot)}</td></tr>);};
                   return (
                     <>
                       {makeRow('Transaction Count',results.monthly.map(m=>m.orders),v=>formatNumber(Math.round(v)))}
                       {makeRow('Revenue',results.monthly.map(m=>m.revenue),v=>formatCurrency(v,currency))}
                       {makeRow('Total Cashback',results.monthly.map(m=>m.cashback),v=>formatCurrency(v,currency))}
                       {makeRow('Net Revenue',results.monthly.map(m=>m.netRevenue),v=>formatCurrency(v,currency))}
+                      {makeRow('TRC Revenue',results.trcMonthly||[],v=>formatCurrency(v,currency),'trc-row')}
                     </>
                   );
                 })()}
               </tbody>
             </table>
-            <button type="button" onClick={()=>setShowTrc(!showTrc)} className="full-width trc-toggle-btn">
-              {showTrc ? 'Hide' : 'Show'} The Reward Collection Revenue Projections
-            </button>
-            {showTrc && (
-              <div className="trc-section">
-                {mode==='always' ? (
-                  <label className="full-width">TRC Margin %
-                    <input type="text" value={formatInputValue(trcMargin)} onChange={e=>setTrcMargin(parseInputValue(e.target.value))} />
-                  </label>
-                ) : (
-                  <>
-                    <label className="full-width">TRC Margin Existing %
-                      <input type="text" value={formatInputValue(trcMarginExisting)} onChange={e=>setTrcMarginExisting(parseInputValue(e.target.value))} />
-                    </label>
-                    <label className="full-width">TRC Margin New %
-                      <input type="text" value={formatInputValue(trcMarginNew)} onChange={e=>setTrcMarginNew(parseInputValue(e.target.value))} />
-                    </label>
-                  </>
-                )}
-                <table className="monthly-table">
-                  <thead>
-                    <tr>
-                      <th></th>
-                      {results.monthLabels.map((m,i)=>(<th key={i}>{m}</th>))}
-                      <th>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(()=>{
-                      const makeRow=(label,arr,fmt)=>{const tot=arr.reduce((a,b)=>a+b,0);return (<tr><td>{label}</td>{arr.map((v,i)=>(<td key={i}>{fmt(v)}</td>))}<td>{fmt(tot)}</td></tr>);};
-                      return (
-                        <>
-                          {makeRow('Transaction Count',results.monthly.map(m=>m.orders),v=>formatNumber(Math.round(v)))}
-                          {makeRow('Revenue',results.monthly.map(m=>m.revenue),v=>formatCurrency(v,currency))}
-                          {makeRow('Total Cashback',results.monthly.map(m=>m.cashback),v=>formatCurrency(v,currency))}
-                          {makeRow('Net Revenue',results.monthly.map(m=>m.netRevenue),v=>formatCurrency(v,currency))}
-                          {makeRow('TRC Revenue',results.trcMonthly||[],v=>formatCurrency(v,currency))}
-                        </>
-                      );
-                    })()}
-                  </tbody>
-                </table>
-              </div>
-            )}
             <p className="disclaimer">
               <strong>Disclaimer:</strong><br />
               All forecasts are based on historical performance data and may fluctuate depending on a range of variables. These figures are intended as directional guidance rather than fixed budgets, offering insight into the potential success of your campaign with The Reward Collection.<br /><br />
