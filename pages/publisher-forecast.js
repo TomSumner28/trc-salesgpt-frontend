@@ -25,6 +25,8 @@ const MONTH_CHANGES = {
 
 const CURRENCY_SYMBOLS = { GBP: '£', USD: '$', EUR: '€' };
 
+const TRC_MARGIN = 0.2; // portion of cashback retained as revenue
+
 const NUM_FORMAT = new Intl.NumberFormat('en-US');
 
 function formatNumber(n) {
@@ -231,6 +233,19 @@ export default function PublisherForecast() {
         instore:{orders:instOrders,revenue:instRevenue,cashback:instCashback,netRevenue:instRevenue-instCashback}
       };
     }
+
+    let trcExisting=0, trcNew=0;
+    if(mode==='always'){
+      const cbPct=parseFloat(allCashback)||0;
+      trcExisting=revenue*(cbPct/100)*TRC_MARGIN;
+    }else{
+      const exRev=parseFloat(existingRevenue)||0;
+      const nwRev=parseFloat(newRevenue)||0;
+      const exPct=parseFloat(existingCashback)||0;
+      const nwPct=parseFloat(newCashback)||0;
+      trcExisting=exRev*(exPct/100)*TRC_MARGIN;
+      trcNew=nwRev*(nwPct/100)*TRC_MARGIN;
+    }
     const cashbackRates =
       mode === 'always'
         ? { existing: parseFloat(allCashback) || 0 }
@@ -246,6 +261,7 @@ export default function PublisherForecast() {
       offerBreakdown,
       channelBreakdown,
       cashbackSplit,
+      trcRevenue:{existing:trcExisting,new:trcNew},
       cashbackRates,
       manager,
       currency,
@@ -262,22 +278,26 @@ export default function PublisherForecast() {
     const saveBtn = resultsRef.current.querySelector('.save-btn');
     const trcSection = resultsRef.current.querySelector('.trc-section');
     const trcBtn = resultsRef.current.querySelector('.trc-toggle-btn');
+    const trcRows = resultsRef.current.querySelectorAll('.trc-row');
     const prevView = viewToggle ? viewToggle.style.display : '';
     const prevSlider = sliderRow ? sliderRow.style.display : '';
     const prevSave = saveBtn ? saveBtn.style.display : '';
     const prevTrc = trcSection ? trcSection.style.display : '';
     const prevTrcBtn = trcBtn ? trcBtn.style.display : '';
+    const prevRow = Array.from(trcRows).map((r) => r.style.display);
     if (viewToggle) viewToggle.style.display = 'none';
     if (sliderRow) sliderRow.style.display = 'none';
     if (saveBtn) saveBtn.style.display = 'none';
     if (trcSection) trcSection.style.display = 'none';
     if (trcBtn) trcBtn.style.display = 'none';
+    trcRows.forEach((r) => (r.style.display = 'none'));
     const canvas = await html2canvas(resultsRef.current);
     if (viewToggle) viewToggle.style.display = prevView;
     if (sliderRow) sliderRow.style.display = prevSlider;
     if (saveBtn) saveBtn.style.display = prevSave;
     if (trcSection) trcSection.style.display = prevTrc;
     if (trcBtn) trcBtn.style.display = prevTrcBtn;
+    trcRows.forEach((r, i) => (r.style.display = prevRow[i]));
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -357,6 +377,8 @@ export default function PublisherForecast() {
         <tr><th>Revenue</th><td>{formatCurrency(results.total.revenue,currency)}</td></tr>
         <tr><th>Total Cashback</th><td>{formatCurrency(results.total.cashback,currency)}</td></tr>
         <tr><th>Net Revenue</th><td>{formatCurrency(results.total.netRevenue,currency)}</td></tr>
+        <tr className="trc-row"><th>TRC Revenue Existing</th><td>{formatCurrency(results.trcRevenue.existing,currency)}</td></tr>
+        <tr className="trc-row"><th>TRC Revenue New</th><td>{formatCurrency(results.trcRevenue.new,currency)}</td></tr>
         <tr><th>Average Order Value</th><td>{formatCurrency(results.total.aov,currency)}</td></tr>
         <tr><th>ROAS</th><td>{results.total.roas.toFixed(2)}x</td></tr>
       </tbody>

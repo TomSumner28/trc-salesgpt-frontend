@@ -62,6 +62,8 @@ const REGION_CURRENCIES = {
   EU: 'EUR',
 };
 
+const TRC_MARGIN = 0.2; // portion of cashback retained as revenue
+
 const CURRENCY_SYMBOLS = {
   GBP: '£',
   USD: '$',
@@ -227,6 +229,14 @@ export default function Forecast() {
           <td>
             {formatCurrency(results.total.netRevenue, results.currency)}
           </td>
+        </tr>
+        <tr className="trc-row">
+          <th>TRC Revenue Existing</th>
+          <td>{formatCurrency(results.trcRevenue.existing, results.currency)}</td>
+        </tr>
+        <tr className="trc-row">
+          <th>TRC Revenue New</th>
+          <td>{formatCurrency(results.trcRevenue.new, results.currency)}</td>
         </tr>
         <tr>
           <th>Increase in Basket Spend</th>
@@ -519,6 +529,10 @@ export default function Forecast() {
     });
     const currency = REGION_CURRENCIES[bestRegion] || 'GBP';
 
+    const trcExisting =
+      existingOrders * aovNum * (existingCb / 100) * TRC_MARGIN;
+    const trcNew = newOrders * aovNum * (newCb / 100) * TRC_MARGIN;
+
     setResults({
       total: {
         baseReach: totalBaseReach,
@@ -535,6 +549,7 @@ export default function Forecast() {
       offerBreakdown,
       channelBreakdown,
       currency,
+      trcRevenue: { existing: trcExisting, new: trcNew },
       cashbackRates: {
         existing: existingCb,
         new: newCb,
@@ -548,13 +563,17 @@ export default function Forecast() {
     const { default: jsPDF } = await import('jspdf');
     const sliderRow = resultsRef.current.querySelector('.slider-row');
     const viewToggle = resultsRef.current.querySelector('.view-toggle');
+    const trcRows = resultsRef.current.querySelectorAll('.trc-row');
     const prevSlider = sliderRow ? sliderRow.style.display : '';
     const prevView = viewToggle ? viewToggle.style.display : '';
+    const prevTrc = Array.from(trcRows).map((r) => r.style.display);
     if (sliderRow) sliderRow.style.display = 'none';
     if (viewToggle) viewToggle.style.display = 'none';
+    trcRows.forEach((r) => (r.style.display = 'none'));
     const canvas = await html2canvas(resultsRef.current);
     if (sliderRow) sliderRow.style.display = prevSlider;
     if (viewToggle) viewToggle.style.display = prevView;
+    trcRows.forEach((r, i) => (r.style.display = prevTrc[i]));
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();

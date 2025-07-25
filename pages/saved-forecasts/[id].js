@@ -61,10 +61,14 @@ export default function ViewForecast() {
     const html2canvas = (await import('html2canvas')).default;
     const { default: jsPDF } = await import('jspdf');
     const viewToggle = resultsRef.current.querySelector('.view-toggle');
+    const trcRows = resultsRef.current.querySelectorAll('.trc-row');
     const prevView = viewToggle ? viewToggle.style.display : '';
+    const prevTrc = Array.from(trcRows).map((r) => r.style.display);
     if (viewToggle) viewToggle.style.display = 'none';
+    trcRows.forEach((r) => (r.style.display = 'none'));
     const canvas = await html2canvas(resultsRef.current);
     if (viewToggle) viewToggle.style.display = prevView;
+    trcRows.forEach((r, i) => (r.style.display = prevTrc[i]));
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -133,6 +137,18 @@ export default function ViewForecast() {
           <th>Net Revenue</th>
           <td>{formatCurrency(total.netRevenue, results.currency || forecast.currency)}</td>
         </tr>
+        {results.trcRevenue && (
+          <>
+            <tr className="trc-row">
+              <th>TRC Revenue Existing</th>
+              <td>{formatCurrency(results.trcRevenue.existing, results.currency || forecast.currency)}</td>
+            </tr>
+            <tr className="trc-row">
+              <th>TRC Revenue New</th>
+              <td>{formatCurrency(results.trcRevenue.new, results.currency || forecast.currency)}</td>
+            </tr>
+          </>
+        )}
         {total.aov && (
           <tr>
             <th>Average Order Value</th>
